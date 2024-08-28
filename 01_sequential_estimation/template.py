@@ -61,8 +61,8 @@ def update_sequence_mean(
     # print("N old: " + str(n_old))
     # print("N in x: " + str(n_in_x))
     
-    # mean as mu_old
-    mu_old = mean
+    # inputted mean as mu_old
+    mu_old = mu
     # For each x value, update estimate for mean
     for N in range(n_in_x):
         # Find new mu
@@ -81,50 +81,29 @@ def _plot_sequence_estimate(data_new: np.ndarray, mean_old: np.ndarray, save_fig
     mean_old:   The current mean, calculated with the old data
     save_fig:   "Name of file to save figure into, if no file name is given, will show plot and not save. Default value is None.   
     '''
-    # Initialize inital estimate as the mean array with k-dimensions
-    k = data_new.shape[1]
-    means_list = [np.zeros(k)]   # Note, this is a list of mean estimation vectors
+    # How many dimensions in the input data
+    data_n_dimensions = data_new.shape[1]
+    # Note, this is a list of mean estimation vectors
+    means_list = [mean_old]
     
-    print("Means_list: " + str(means_list))
     
     '''
     # Perform update_sequence_mean for each point in the set.
     # Collect the estimates as you go
     
-        print(update_sequence_mean(mean, new_data, N))
-
-    '''
-    
-    '''
-    From template
-        data = None # Set this as the data
-    estimates = [np.array([0, 0])]
+    update_sequence_mean(mean, new_data, N)
     '''
 
-    # For each vector in the data matrix, get an updated_sequence_mean. Collect estimates as we go
+    # For each vector in the data matrix, get an updated_sequence_mean. Collect mean estimates as we go
     for i in range(data_new.shape[0]):
         # Add new estimate to collection
         means_list.append(update_sequence_mean(means_list[i], data_new[i], i+1))
         
-    '''
-    From template
-        for i in range(data.shape[0]):
-        """
-            your code here
-        """
-    '''
 
-    # Generate plot from estimation for each dimension
-    for i in range(k):
+    # Generate plot from means_list for each dimension
+    for i in range(data_n_dimensions):
         plt.plot([e[i] for e in means_list], label=(str(i+1)+' dimension'))
-
-    '''
-    From template:
-        plt.plot([e[0] for e in estimates], label='First dimension')
-    """
-        your code here
-    """
-    '''
+    
     # Title plot
     plt.title("Mean estimates per data point")
     # Label axis
@@ -277,7 +256,7 @@ if __name__ == '__main__':
     print("Part 4") 
     # Generate 100 2-dimensional points with mean [0, 0] and variance 3.
     new_data = gen_data(100, 2, np.array([0, 0]), 3)
-
+    
     # Set the initial mean estimate as (0, 0) assuming it's an initial mean estimate of 1 value
     mean = np.array([0, 0])
 

@@ -9,8 +9,7 @@ import numpy as np
 
 from tools import scatter_2d_data, bar_per_axis
 
-# Use same random seed as professor
-np.random.seed(1234)
+RANDOM_SEED = 1234
 
 def gen_data(
     n: int,
@@ -27,9 +26,12 @@ def gen_data(
     var:    variance for K-variate normal distribution
 
     Returns nxK array X of vectors x_i
-    '''
+    '''    
     # Create variance array (no covariance)
     variance_matrix = np.identity(k)*var*var
+
+    # Reset random seed
+    np.random.seed(RANDOM_SEED)
 
     X_array = np.random.multivariate_normal(mean, variance_matrix, size=n)
 
@@ -212,7 +214,7 @@ if __name__ == '__main__':
 
     # Answer to written question
     text_answer = "Do you expect the batch estimate to be exactly (0,1,-1)?\nYes. I do, because that's what we generated it as.\n\nWhich two parameters can be used to make this estimate more accurate? I have no clue, really don't understand the statistics I'm doing right now\nhttps://m.media-amazon.com/images/I/41sKf2ToyPL.jpg"
-    with open('.\\1_2_1.txt', 'w') as f:
+    with open('.\\2_1.txt', 'w') as f:
         f.write(str(text_answer))
 
     # Part 1.3

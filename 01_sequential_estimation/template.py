@@ -45,13 +45,33 @@ def update_sequence_mean(
 ) -> np.ndarray:
     '''
     Performs the mean sequence estimation update.
-    mu: Mean
-    x:  1 Vector from X_array
-    n:  Number of vectors in X_array
+    mu: Mean value of old data
+    x:  Array with new data that we want to add to the updated mean
+    n:  Number of values in the x array + number of values in the mean already
 
-    Returns a mean estimation for the whole matrix???
+    Loops through each value and estimates the new mean using the mean sequence estimation update method where
+    
+    mu_new = mu_old + (x[N]-mu_old)/N
     '''
-    return mu + (x-mu)/n
+    print("Update sequence mean")
+    # Number of values in x
+    n_in_x = x.shape[0]
+   
+    # Find how many values are already in the mean
+    n_old = n - n_in_x
+    # print("N old: " + str(n_old))
+    # print("N in x: " + str(n_in_x))
+    
+    # mean as mu_old
+    mu_old = mean
+    # For each x value, update estimate for mean
+    for N in range(n_in_x):
+        # Find new mu
+        mu_new = mu_old + (x[N] - mu_old)/(n_old + N)
+        # update old mu
+        mu_old = mu_new
+    
+    return mu_new
 
 def _plot_sequence_estimate(data, save_fig=None):
     '''
@@ -188,8 +208,10 @@ def _plot_changing_sequence_estimate():
 # Test area
 # -----------------------------------------------------
 if __name__ == '__main__':
-    # Part 1.1
-    print("Part 1.1\n is:")
+    print("\nStarting test")
+    # Part 1
+    '''
+    print("Part 1\n is:")
     print(gen_data(2, 3, np.array([0, 1, -1]), 1.3))
     print("\n The same as\n")
     print(np.array([[ 0.61286571, -0.5482684 ,  0.86251906],
@@ -202,53 +224,64 @@ if __name__ == '__main__':
                     [ 1.21635348],
                     [ 0.34367405],
                     [ 0.13970563]]))
+    '''
 
-
-    # Part 1.2
-    print("Part 1.2")
+    # Part 2
+    print("Part 2")
     # Create 300 3-dimensional data points sampled, write to file
-    data_1_2 = gen_data(300, 3, [0,1,-1], np.sqrt(3))
-    # Plot 3D data
-    #scatter_3d_data(data_1_2)
-    #bar_per_axis(data_1_2)
+    n_points = 300
+    vector_dimensions = 2
+    mean = [-1,2]
+    var = np.sqrt(4)
+    data_2 = gen_data(n_points, vector_dimensions, mean, var)
+    # Plot 2D data
+    # scatter_2d_data(data_2)
+    # bar_per_axis(data_2)
 
-    # Answer to written question
-    text_answer = "Do you expect the batch estimate to be exactly (0,1,-1)?\nYes. I do, because that's what we generated it as.\n\nWhich two parameters can be used to make this estimate more accurate? I have no clue, really don't understand the statistics I'm doing right now\nhttps://m.media-amazon.com/images/I/41sKf2ToyPL.jpg"
-    with open('.\\2_1.txt', 'w') as f:
+    # Answer to written question by writing to 2.txt
+    print("Writing to 2.txt file")
+    text_answer = "Do you expect the batch estimate to be exactly (0,1,-1)?\nNo, not exactly, but very close because that's what we generated it as.\n\nWhich two parameters can be used to make this estimate more accurate? I have no clue, really don't understand the statistics I'm doing right now but my feeling is that if we decrease the variance and increase the number of values then we'll get means that are closer to the input values.\nhttps://m.media-amazon.com/images/I/41sKf2ToyPL.jpg"
+    with open('2.txt', 'w') as f:
         f.write(str(text_answer))
+    print("File updated")
 
-    # Part 1.3
-    print("Part 1.3")
 
-    
-    # Part 1.4
-    print("Part 1.4")
-    X = data_1_2
+    # Part 3
+    print("Part 3\nIs this:")
+    mean = np.mean(data_2, 0)
+    new_data = gen_data(1, 2, np.array([0, 0]), 1)
+    # print("mean: " + str(mean))
+    # print("New data: " + str(new_data))
+    # print("N: " + str(data_2.shape[0]+new_data.shape[0]))
+    print("Is this: " + str(update_sequence_mean(mean, new_data, data_2.shape[0]+1)))
+    print("Close to this: [[-0.85286428  1.95485036]])?")
+
+    # Part 4
+    print("Part 4")
+    X = data_2
     mean = np.mean(X, 0)
     new_x = gen_data(1, 3, np.array([0, 0, 0]), 1)
     print(update_sequence_mean(mean, new_x, X.shape[0]))
 
 
-    # Part 1.5
-    print("Part 1.5")
+    # Part 5
+    print("Part 5")
     # Create 100 3-dimensional data points with mean [0,0,0] and variance 4
     mean = [0,0,0]
     variance = 4
-    data_1_5 = gen_data(100, 3, mean, variance)
-    _plot_sequence_estimate(data_1_5, save_fig=".\\03_sequential_estimation\\1_5_1.png")
-    #_plot_sequence_estimate(data_1_5)
+    data_5 = gen_data(100, 3, mean, variance)
+    _plot_sequence_estimate(data_5, save_fig=".\\03_sequential_estimation\\5.png")
+    #_plot_sequence_estimate(data_5)
 
 
-    # Part 1.6
-    print("Part 1.6")
-    #_plot_mean_square_error(data_1_5, mean)
-    _plot_mean_square_error(data_1_5, mean, ".\\03_sequential_estimation\\1_6_1.png")
+    # Part 6
+    print("Part 6")
+    #_plot_mean_square_error(data_5, mean)
+    _plot_mean_square_error(data_5, mean, ".\\03_sequential_estimation\\6_1.png")
 
 
     # Confirmation message for a succesful run
     print("\n---------------------------------------------------------------\nRun succesful :)\n")
-
-
 
 '''
     if == :
@@ -256,5 +289,3 @@ if __name__ == '__main__':
     else:
         print("Fail")
 '''
-
-

@@ -53,7 +53,6 @@ def update_sequence_mean(
     
     mu_new = mu_old + (x[N]-mu_old)/N
     '''
-    print("Update sequence mean")
     # Number of values in x
     n_in_x = x.shape[0]
    
@@ -73,15 +72,28 @@ def update_sequence_mean(
     
     return mu_new
 
-def _plot_sequence_estimate(data, save_fig=None):
+def _plot_sequence_estimate(data_new: np.ndarray, mean_old: np.ndarray, save_fig: str = None):
     '''
-    Plots a sequence estimate for all the vectors in the data with an initial estimate of zero with k-dimensions
-    data:   n x k array with an n number of k-dimensional vectors
-    save_fig:   "Name of file to save figure into, if no file name is given, will show plot and not save. Default value is None.
+    Plots a sequence estimate for all the vectors in the data with an initial mean estimate of mean_old with k-dimensions.
+    On the plot the x-axis is how many values have been added to the mean and the y-axis is the mean.
+
+    data_new:   n x k array with an n number of k-dimensional vectors (a.k.a. data points)
+    mean_old:   The current mean, calculated with the old data
+    save_fig:   "Name of file to save figure into, if no file name is given, will show plot and not save. Default value is None.   
     '''
-    # Initialize inital estimate as zero array with k-dimensions
-    k = data.shape[1]
-    estimates = [np.zeros(k)]   # Note, this is a list of mean estimation vectors
+    # Initialize inital estimate as the mean array with k-dimensions
+    k = data_new.shape[1]
+    means_list = [np.zeros(k)]   # Note, this is a list of mean estimation vectors
+    
+    print("Means_list: " + str(means_list))
+    
+    '''
+    # Perform update_sequence_mean for each point in the set.
+    # Collect the estimates as you go
+    
+        print(update_sequence_mean(mean, new_data, N))
+
+    '''
     
     '''
     From template
@@ -90,9 +102,9 @@ def _plot_sequence_estimate(data, save_fig=None):
     '''
 
     # For each vector in the data matrix, get an updated_sequence_mean. Collect estimates as we go
-    for i in range(data.shape[0]):
+    for i in range(data_new.shape[0]):
         # Add new estimate to collection
-        estimates.append(update_sequence_mean(estimates[i], data[i], i+1))
+        means_list.append(update_sequence_mean(means_list[i], data_new[i], i+1))
         
     '''
     From template
@@ -104,7 +116,7 @@ def _plot_sequence_estimate(data, save_fig=None):
 
     # Generate plot from estimation for each dimension
     for i in range(k):
-        plt.plot([e[i] for e in estimates], label=(str(i+1)+' dimension'))
+        plt.plot([e[i] for e in means_list], label=(str(i+1)+' dimension'))
 
     '''
     From template:
@@ -113,7 +125,6 @@ def _plot_sequence_estimate(data, save_fig=None):
         your code here
     """
     '''
-
     # Title plot
     plt.title("Mean estimates per data point")
     # Label axis
@@ -228,10 +239,14 @@ if __name__ == '__main__':
 
     # Part 2
     print("Part 2")
-    # Create 300 3-dimensional data points sampled, write to file
+    # Create 300 3-dimensional data points sampled
+    # number of points
     n_points = 300
+    # dimensions
     vector_dimensions = 2
+    # Mean
     mean = [-1,2]
+    # Variance
     var = np.sqrt(4)
     data_2 = gen_data(n_points, vector_dimensions, mean, var)
     # Plot 2D data
@@ -240,7 +255,7 @@ if __name__ == '__main__':
 
     # Answer to written question by writing to 2.txt
     print("Writing to 2.txt file")
-    text_answer = "Do you expect the batch estimate to be exactly (0,1,-1)?\nNo, not exactly, but very close because that's what we generated it as.\n\nWhich two parameters can be used to make this estimate more accurate? I have no clue, really don't understand the statistics I'm doing right now but my feeling is that if we decrease the variance and increase the number of values then we'll get means that are closer to the input values.\nhttps://m.media-amazon.com/images/I/41sKf2ToyPL.jpg"
+    text_answer = "Do you expect the batch estimate to be exactly (0,1,-1)?\nNo, not exactly, but very close because that's what we generated it as.\n\nWhich two parameters can be used to make this estimate more accurate?\nI have no clue, really don't understand the statistics I'm doing right now but my feeling is that if we decrease the variance and increase the number of values then we'll get means that are closer to the input values.\nhttps://m.media-amazon.com/images/I/41sKf2ToyPL.jpg"
     with open('2.txt', 'w') as f:
         f.write(str(text_answer))
     print("File updated")
@@ -248,20 +263,29 @@ if __name__ == '__main__':
 
     # Part 3
     print("Part 3\nIs this:")
+    # Find mean
     mean = np.mean(data_2, 0)
+    # Generate additional data points
     new_data = gen_data(1, 2, np.array([0, 0]), 1)
-    # print("mean: " + str(mean))
-    # print("New data: " + str(new_data))
-    # print("N: " + str(data_2.shape[0]+new_data.shape[0]))
-    print("Is this: " + str(update_sequence_mean(mean, new_data, data_2.shape[0]+1)))
+    # N is total number of data points
+    N = data_2.shape[0] + new_data.shape[0]
+    # Check results
+    print("Is this: " + str(update_sequence_mean(mean, new_data, N)))
     print("Close to this: [[-0.85286428  1.95485036]])?")
 
     # Part 4
-    print("Part 4")
-    X = data_2
-    mean = np.mean(X, 0)
-    new_x = gen_data(1, 3, np.array([0, 0, 0]), 1)
-    print(update_sequence_mean(mean, new_x, X.shape[0]))
+    print("Part 4") 
+    # Generate 100 2-dimensional points with mean [0, 0] and variance 3.
+    new_data = gen_data(100, 2, np.array([0, 0]), 3)
+
+    # Set the initial mean estimate as (0, 0) assuming it's an initial mean estimate of 1 value
+    mean = np.array([0, 0])
+
+    # N is total number of data points
+    N = new_data.shape[0]+1
+    # Plot the mean as it evolves with each added data point
+    #_plot_sequence_estimate(new_data, mean, save_fig=".\\4.png")
+    _plot_sequence_estimate(new_data, mean)
 
 
     # Part 5
@@ -270,14 +294,14 @@ if __name__ == '__main__':
     mean = [0,0,0]
     variance = 4
     data_5 = gen_data(100, 3, mean, variance)
-    _plot_sequence_estimate(data_5, save_fig=".\\03_sequential_estimation\\5.png")
+    #_plot_sequence_estimate(data_5, save_fig=".\\03_sequential_estimation\\5.png")
     #_plot_sequence_estimate(data_5)
 
 
     # Part 6
     print("Part 6")
     #_plot_mean_square_error(data_5, mean)
-    _plot_mean_square_error(data_5, mean, ".\\03_sequential_estimation\\6_1.png")
+    _plot_mean_square_error(data_5, mean, ".\\6.png")
 
 
     # Confirmation message for a succesful run

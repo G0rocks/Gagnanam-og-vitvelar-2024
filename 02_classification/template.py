@@ -53,7 +53,19 @@ def gen_data(
     # Return data points, target classes and array listing all classes
     return data, targets, data_classes
 
-    
+
+def _get_num_class_in_targets(targets: np.ndarray, sel_class: int) -> int:
+    '''
+    Gets the number of instances a given class appears in the targets
+    targets: The target array
+    sel_class: The selected class
+    '''
+    n_class_instances = 0
+    for target in targets:
+        if target == sel_class:
+            n_class_instances = n_class_instances+1
+    return n_class_instances
+
 def mean_of_class(
     features: np.ndarray,
     targets: np.ndarray,
@@ -73,10 +85,7 @@ def mean_of_class(
     n_data, n_features = np.shape(features)
     
     # Get number of selected_class instances in targets
-    n_class_instances = 0
-    for target in targets:
-        if target == selected_class:
-            n_class_instances = n_class_instances+1
+    n_class_instances = _get_num_class_in_targets(targets, selected_class)
 
     # Make class_mean array with zeros
     class_mean = np.zeros(n_features)
@@ -103,6 +112,7 @@ def covar_of_class(
     '''
     Estimate the covariance of a selected class given all
     features and targets in a dataset
+    
     features:   Feature array
     targets:    Target array
     selected_class: Class to find the mean of, int.
@@ -110,15 +120,12 @@ def covar_of_class(
     returns class_covar array with the covariance for the selected_class
     '''
     # Create array of class features for each class feature which matches the selected_class
-    # First find number of matching targets
-    n_class_targets = 0
-    for target in targets:
-        if target == selected_class:
-            n_class_targets = n_class_targets+1
+    # Get number of selected_class instances in targets
+    n_class_instances = _get_num_class_in_targets(targets, selected_class)
 
     # Initialize empty array of class features. First get features dimensions
     lines, columns = features.shape
-    matching_features = np.zeros((n_class_targets, columns))
+    matching_features = np.zeros((n_class_instances, columns))
 
     # Input matching features from features into matching_features
     n_features = 0
@@ -275,6 +282,10 @@ if __name__ == '__main__':
     # use unique labels (dict_of_labels.keys()) to generate your legend
     plt.legend(dict_of_labels.values(), dict_of_labels.keys())
     
+    # Label axis
+    plt.xlabel("x1") # Add ", fontsize = #" to control fontsize
+    plt.ylabel("x2")
+    
     # Show or save plot
     # plt.show()
     plt.savefig(".\\Gagnanam-og-vitvelar-2024 git repo\\02_classification\\2_1.png")
@@ -288,7 +299,8 @@ if __name__ == '__main__':
         
     # Part 4
     print("Part 4 - Class covariance")
-    class_cov = covar_of_class(train_data, train_targets, 0)
+    given_class = 0
+    class_cov = covar_of_class(train_data, train_targets, given_class)
 
     # Part 5
     print("Part 5")

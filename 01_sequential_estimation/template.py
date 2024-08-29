@@ -64,24 +64,12 @@ def update_sequence_mean(
     except Exception as e:
         print("x.shape[1] NOT AVAILABLE!\nError:")
         print(e)
-   
-    '''
-    # Find how many values are already in the mean
-    n_old = n - n_in_x
-    # If no data points in old mean, return
-    if n_old == 0:
-        print("CAN NOT HAVE A MEAN WITH ZERO DATA POINTS!\nRETURNING!")
-        return
-    # print("N old: " + str(n_old))
-    # print("N in x: " + str(n_in_x))
-    '''
     
     # inputted mean as mu_old
     mu_old = np.copy(mu)
     # init mu_new
     mu_new = np.copy(mu_old)
 
-    
     # For each x value in each dimension, update estimate for mean in the corresponding dimension
     #for dim in range(ndim):
     for N in range(n_in_x):

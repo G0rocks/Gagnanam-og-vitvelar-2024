@@ -1,0 +1,6 @@
+Do you expect the batch estimate to be exactly (0,1,-1)?
+No, not exactly, but very close because that's what we generated it as.
+
+Which two parameters can be used to make this estimate more accurate?
+I have no clue, really don't understand the statistics I'm doing right now but my feeling is that if we decrease the variance and increase the number of values then we'll get means that are closer to the input values.
+https://m.media-amazon.com/images/I/41sKf2ToyPL.jpg

@@ -36,7 +36,7 @@ def gen_data(
     # Init empty data array with n rows and k columns
     data    = np.empty([n,k])
     # Init empty target array with n rows
-    targets  = np.empty(n)
+    targets  = np.empty(n, dtype=int)
     # Find out number of classes and generate data_classes
     data_classes    = np.array(range(0, n_classes))
 
@@ -48,7 +48,7 @@ def gen_data(
     
     # Loop through each target, n loops, generate random class for each data point
     for i in range(n):
-        targets[i] = np.random.random_integers(0, n_classes)
+        targets[i] = np.random.randint(0, n_classes)
         
     # Return data points, target classes and array listing all classes
     return data, targets, data_classes
@@ -160,25 +160,25 @@ def likelihood_of_class(
 
 
 def maximum_likelihood(
-    train_features: np.ndarray,
+    train_data: np.ndarray,
     train_targets: np.ndarray,
-    test_features: np.ndarray,
+    test_data: np.ndarray,
     classes: list
 ) -> np.ndarray:
     '''
     Calculate the maximum likelihood for each test point in
-    test_features by first estimating the mean and covariance
+    test_data by first estimating the mean and covariance
     of all classes over the training set.
 
     You should return
-    a [test_features.shape[0] x len(classes)] shaped numpy
+    a [test_data.shape[0] x len(classes)] shaped numpy
     array
     '''
     means, covs = [], []
     for class_label in classes:
         ...
     likelihoods = []
-    for i in range(test_features.shape[0]):
+    for i in range(test_data.shape[0]):
         ...
     return np.array(likelihoods)
 
@@ -199,18 +199,18 @@ def predict(likelihoods: np.ndarray):
 
 # Felt cute, might delete maximum_aposteriori later
 def maximum_aposteriori(
-    train_features: np.ndarray,
+    train_data: np.ndarray,
     train_targets: np.ndarray,
-    test_features: np.ndarray,
+    test_data: np.ndarray,
     classes: list
 ) -> np.ndarray:
     '''
     Calculate the maximum a posteriori for each test point in
-    test_features by first estimating the mean and covariance
+    test_data by first estimating the mean and covariance
     of all classes over the training set.
 
     You should return
-    a [test_features.shape[0] x len(classes)] shaped numpy
+    a [test_data.shape[0] x len(classes)] shaped numpy
     array
     '''
     ...
@@ -221,61 +221,73 @@ def maximum_aposteriori(
 if __name__ == '__main__':
     # Try running
     print("\nStarting test")
-    # Part 1.1
-    print("Part 1.1")
+    # Part 1
+    print("Part 1 - Generate data")
     n_data_points = 50
     means = np.array([-1, 1])
     std_devs = np.array([np.sqrt(5), np.sqrt(5)])
     n_classes = 3   # Assume 3 classes since no place in the assignment instructions gives an idea for how many classes there are
+    # Create data points, targets and classes
     data_points, targets, classes = gen_data(n_data_points, means, std_devs, n_classes) # load_iris()    # Example: load_data(2, [0, 2], [4, 4]) not working
+    # Split data    
+    (train_data, train_targets), (test_data, test_targets) = split_train_test(data_points, targets, train_ratio=0.8)
+
+    '''
+    if (train_data, train_targets, 0).all() == np.array([5.005, 3.4425, 1.4625, 0.2575]).all():
+        print("Pass")
+    else:
+        print("Fail")
+
+    if mean_of_class(train_data, train_targets, 0).all() == np.array([5.005, 3.4425, 1.4625, 0.2575]).all():
+        print("Pass")
+    else:
+        print("Fail")
+    '''
+
+    # Part 2
+    print("Part 2 - Plot")
+    # Generate random colors which is a n x 3 list where [n][0] signifies RED, [n][1] signifies GREEN and [n][2] signifies BLUE in the RGB code
+    colors = np.empty([n_classes, 3])
+    for i in range(n_classes):
+        # Generate color
+        colors[i][0] = np.random.random()    # RED
+        colors[i][1] = np.random.random()    # GREEN
+        colors[i][2] = np.random.random()    # BLUE
+
+    # Loop through all data points, add each one to plot, depending on target, set marker
+    for i in range(n_data_points):
+        x = data_points[i,0]
+        y = data_points[i,1]
+        
+        # Get target class and corresponding color
+        color_index = targets[i]
+        color = (colors[color_index][0], colors[color_index][1], colors[color_index][2])
+        plt.scatter(x, y, color = color, label = "Class " + str(targets[i]))
+
+    # Make a legend to indicate which color is which class, credit to Homayoun Hamedmoghadam from https://stackoverflow.com/questions/70240576/avoid-duplicate-labels-in-matplotlib-with-x-y-of-form
+    # Get legend handles and their corresponding labels
+    handles, labels = plt.gca().get_legend_handles_labels()
+
+    # zip labels as keys and handles as values into a dictionary, so only unique labels would be stored 
+    dict_of_labels = dict(zip(labels, handles))
+
+    # use unique labels (dict_of_labels.keys()) to generate your legend
+    plt.legend(dict_of_labels.values(), dict_of_labels.keys())
     
-    (train_features, train_targets), (test_features, test_targets) = split_train_test(data_points, targets, train_ratio=0.8)
-
-    if (train_features, train_targets, 0).all() == np.array([5.005, 3.4425, 1.4625, 0.2575]).all():
+    # Show or save plot
+    # plt.show()
+    plt.savefig(".\\Gagnanam-og-vitvelar-2024 git repo\\02_classification\\2_1.png")
+    
+    '''
+    # Part 3
+    print("Part 3")
+    class_mean = mean_of_class(train_data, train_targets, 0)
+    class_cov = covar_of_class(train_data, train_targets, 0)
+    if likelihood_of_class(test_data[0, :], class_mean, class_cov) == (7.174078020748095*(10^(-85))):
         print("Pass")
     else:
         print("Fail")
-
-    if mean_of_class(train_features, train_targets, 0).all() == np.array([5.005, 3.4425, 1.4625, 0.2575]).all():
-        print("Pass")
-    else:
-        print("Fail")
-
-
-    # Part 1.2
-    print("Part 1.2")
-    print("Þetta er rangt en virkar þegar ég set það inn á gradescope svo ¯\_(ツ)_/¯")
-    if np.array_equal(covar_of_class(train_features, train_targets, 0), np.array([[0.11182346, 0.09470383, 0.01757259, 0.01440186],
-                                                                            [0.09470383, 0.14270035, 0.01364111, 0.01461672],
-                                                                            [0.01757259, 0.01364111, 0.03083043, 0.00717189],
-                                                                            [0.01440186, 0.01461672, 0.00717189, 0.01229384]])):
-        print("Pass")
-    else:
-        print("Fail")
-
-    # Part 1.3
-    print("Part 1.3")
-    class_mean = mean_of_class(train_features, train_targets, 0)
-    class_cov = covar_of_class(train_features, train_targets, 0)
-    if likelihood_of_class(test_features[0, :], class_mean, class_cov) == (7.174078020748095*(10^(-85))):
-        print("Pass")
-    else:
-        print("Fail")
-
-    # Part 1.4
-    print("Part 1.4")
-
-    # Part 1.5
-    print("Part 1.5")
-
-
-    # Part 2.1
-    print("Part 2.1")
-
-
-    # Part 2.2
-    print("Part 2.2")
-
+    '''
 
     # Confirmation message for a succesful run
     print("\n---------------------------------------------------------------\nRun succesful :)\n")
@@ -288,14 +300,14 @@ if __name__ == '__main__':
 
 '''
 
-
-
-#----------------------------------------------------------------
-# Exercise 5 classification from 2023
-
-
-
-
-
-
-
+# From exercise 5 in 2023
+'''
+    print("Þetta er rangt en virkar þegar ég set það inn á gradescope svo ¯\_(ツ)_/¯")
+    if np.array_equal(covar_of_class(train_data, train_targets, 0), np.array([[0.11182346, 0.09470383, 0.01757259, 0.01440186],
+                                                                            [0.09470383, 0.14270035, 0.01364111, 0.01461672],
+                                                                            [0.01757259, 0.01364111, 0.03083043, 0.00717189],
+                                                                            [0.01440186, 0.01461672, 0.00717189, 0.01229384]])):
+        print("Pass")
+    else:
+        print("Fail")
+'''

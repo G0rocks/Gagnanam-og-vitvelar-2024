@@ -156,7 +156,7 @@ def likelihood_of_class(
     Estimate the likelihood that a sample is drawn
     from a multivariate normal distribution, given the mean
     and covariance of the distribution.
-    Note: 
+
     feature:    Data point with all the features of the object to be classified
     class_mean: Mean of all features in the class
     class_covar:    covariance matrix for the class.
@@ -164,7 +164,7 @@ def likelihood_of_class(
     Output:
     likelihood: The likelihood that the object belongs to the class
     '''
-    return norm(mean=class_mean, cov=class_covar).pdf(feature)
+    return norm(class_mean, class_covar).pdf(feature)
 
 
 def maximum_likelihood(
@@ -304,15 +304,11 @@ if __name__ == '__main__':
 
     # Part 5
     print("Part 5")
-    '''
-        if likelihood_of_class(test_data[0, :], class_mean, class_cov) == (7.174078020748095*(10^(-85))):
-        print("Pass")
-    else:
-        print("Fail")
-    '''
+    class_likelihood = likelihood_of_class(test_data[0, :], class_mean, class_cov)
     
     # Part 6
     print("Part 6")
+    
 
     # Part 7
     print("Part 7")

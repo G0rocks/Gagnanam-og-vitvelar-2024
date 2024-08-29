@@ -164,7 +164,16 @@ def likelihood_of_class(
     Output:
     likelihood: The likelihood that the object belongs to the class
     '''
-    return norm(class_mean, class_covar).pdf(feature)
+    # Find class standard deviation from covariance
+    # Init class_std_dev
+    class_std_dev = np.zeros(class_covar.shape[0])
+    # For each variance value on the diagonal of the covariance matrix, take the square root
+    for i in range(class_covar.shape[0]):
+        class_std_dev[i] = np.sqrt(class_covar[i][i])
+    
+    # Find class likelihood
+    class_likelihood = norm(class_mean, class_std_dev).pdf(feature)
+    return class_likelihood
 
 
 def maximum_likelihood(
@@ -303,7 +312,7 @@ if __name__ == '__main__':
     class_cov = covar_of_class(train_data, train_targets, given_class)
 
     # Part 5
-    print("Part 5")
+    print("Part 5 - Class likelihood")
     class_likelihood = likelihood_of_class(test_data[0, :], class_mean, class_cov)
     
     # Part 6

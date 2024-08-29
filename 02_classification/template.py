@@ -62,7 +62,8 @@ def mean_of_class(
     '''
     Estimate the mean of a selected class given all features
     and targets in a dataset
-    features:   Feature array
+    
+    features:   Feature array, contains all the data points
     targets:    Target array
     selected_class: Class to find the mean of, int.
 
@@ -278,16 +279,35 @@ if __name__ == '__main__':
     # plt.show()
     plt.savefig(".\\Gagnanam-og-vitvelar-2024 git repo\\02_classification\\2_1.png")
     
-    '''
+    
     # Part 3
-    print("Part 3")
-    class_mean = mean_of_class(train_data, train_targets, 0)
+    print("Part 3 - Class mean")
+    # Find class mean in the training data
+    given_class = 0
+    class_mean = mean_of_class(train_data, train_targets, given_class)
+        
+    # Part 4
+    print("Part 4 - Class covariance")
     class_cov = covar_of_class(train_data, train_targets, 0)
-    if likelihood_of_class(test_data[0, :], class_mean, class_cov) == (7.174078020748095*(10^(-85))):
+
+    # Part 5
+    print("Part 5")
+    '''
+        if likelihood_of_class(test_data[0, :], class_mean, class_cov) == (7.174078020748095*(10^(-85))):
         print("Pass")
     else:
         print("Fail")
     '''
+    
+    # Part 6
+    print("Part 6")
+
+    # Part 7
+    print("Part 7")
+
+    # Part 8
+    print("Part 8")
+
 
     # Confirmation message for a succesful run
     print("\n---------------------------------------------------------------\nRun succesful :)\n")

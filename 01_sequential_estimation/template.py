@@ -20,6 +20,7 @@ def gen_data(
     '''
     Generate n values samples from the k-variate
     normal distribution.
+    
     n: Number of vectors
     k: Dimension of each vector
     mean:   Mean for K-variate normal distribution
@@ -35,8 +36,8 @@ def gen_data(
 
     X_array = np.random.multivariate_normal(mean, variance_matrix, size=n)
 
-    # Return X_array
-    return X_array
+    # Return X_array with shape (n,k)
+    return X_array.reshape((n,k))
 
 def update_sequence_mean(
     mu: np.ndarray,
@@ -47,7 +48,7 @@ def update_sequence_mean(
     Performs the mean sequence estimation update.
     mu: Mean value of old data
     x:  Array with new data that we want to add to the updated mean
-    n:  Number of values in the x array + number of values in the mean already
+    n:  number of values in the mean already
 
     Loops through each value and estimates the new mean using the mean sequence estimation update method where
     
@@ -55,30 +56,50 @@ def update_sequence_mean(
     '''
     # Number of values in x
     n_in_x = x.shape[0]
+    
+    # Number of dimensions used
+    try:
+        ndim = x.shape[1]
+    except Exception as e:
+        print("x.shape[1] NOT AVAILABLE!\nError:")
+        print(e)
    
+    '''
     # Find how many values are already in the mean
     n_old = n - n_in_x
+    # If no data points in old mean, return
+    if n_old == 0:
+        print("CAN NOT HAVE A MEAN WITH ZERO DATA POINTS!\nRETURNING!")
+        return
     # print("N old: " + str(n_old))
     # print("N in x: " + str(n_in_x))
+    '''
     
     # inputted mean as mu_old
-    mu_old = mu
-    # For each x value, update estimate for mean
-    for N in range(n_in_x):
-        # Find new mu
-        mu_new = mu_old + (x[N] - mu_old)/(n_old + N)
-        # update old mu
-        mu_old = mu_new
+    mu_old = np.copy(mu)
+    # init mu_new
+    mu_new = np.copy(mu_old)
+
     
+    # For each x value in each dimension, update estimate for mean in the corresponding dimension
+    #for dim in range(ndim):
+    for N in range(n_in_x):
+        for dim in range(ndim):
+            # Find new mu
+            mu_new[dim] = mu_old[dim] + (x[N][dim] - mu_old[dim])/(n + N)
+        # update old mu
+        mu_old = np.copy(mu_new)
+        
     return mu_new
 
-def _plot_sequence_estimate(data_new: np.ndarray, mean_old: np.ndarray, save_fig: str = None):
+def _plot_sequence_estimate(data_new: np.ndarray, mean_old: np.ndarray, n: int, save_fig: str = None):
     '''
     Plots a sequence estimate for all the vectors in the data with an initial mean estimate of mean_old with k-dimensions.
     On the plot the x-axis is how many values have been added to the mean and the y-axis is the mean.
 
     data_new:   n x k array with an n number of k-dimensional vectors (a.k.a. data points)
     mean_old:   The current mean, calculated with the old data
+    n:          The number of data points that have been used to compute the old mean
     save_fig:   "Name of file to save figure into, if no file name is given, will show plot and not save. Default value is None.   
     '''
     # How many dimensions in the input data
@@ -86,19 +107,15 @@ def _plot_sequence_estimate(data_new: np.ndarray, mean_old: np.ndarray, save_fig
     # Note, this is a list of mean estimation vectors
     means_list = [mean_old]
     
-    
     '''
     # Perform update_sequence_mean for each point in the set.
     # Collect the estimates as you go
-    
-    update_sequence_mean(mean, new_data, N)
     '''
 
     # For each vector in the data matrix, get an updated_sequence_mean. Collect mean estimates as we go
     for i in range(data_new.shape[0]):
         # Add new estimate to collection
-        means_list.append(update_sequence_mean(means_list[i], data_new[i], i+1))
-        
+        means_list.append(update_sequence_mean(means_list[i], data_new[i].reshape([1, data_n_dimensions]), i+n))
 
     # Generate plot from means_list for each dimension
     for i in range(data_n_dimensions):
@@ -107,7 +124,7 @@ def _plot_sequence_estimate(data_new: np.ndarray, mean_old: np.ndarray, save_fig
     # Title plot
     plt.title("Mean estimates per data point")
     # Label axis
-    plt.xlabel("Data points used for estimation") # Add ", fontsize = #" to control fontsize
+    plt.xlabel("Number of data points used") # Add ", fontsize = #" to control fontsize
     plt.ylabel("Mean estimation")
     plt.legend(loc='upper center')
     
@@ -224,7 +241,7 @@ if __name__ == '__main__':
     # dimensions
     vector_dimensions = 2
     # Mean
-    mean = [-1,2]
+    mean = np.array([-1.0,2.0])
     # Variance
     var = np.sqrt(4)
     data_2 = gen_data(n_points, vector_dimensions, mean, var)
@@ -241,48 +258,58 @@ if __name__ == '__main__':
 
 
     # Part 3
-    print("Part 3\nIs this:")
-    # Find mean
-    mean = np.mean(data_2, 0)
+    print("Part 3")
     # Generate additional data points
-    new_data = gen_data(1, 2, np.array([0, 0]), 1)
+    # 1 vector
+    n = 1
+    # 2 dimensions
+    k = 2
+    # Find mean
+    #mean = np.mean(data_2, 0).reshape((1,data_2.shape[1]))
+    mean = np.array([0.0, 0.0])
+    var = 1
+    new_data = gen_data(n, k, mean, var)
     # N is total number of data points
     N = data_2.shape[0] + new_data.shape[0]
-    # Check results
-    print("Is this: " + str(update_sequence_mean(mean, new_data, N)))
-    print("Close to this: [[-0.85286428  1.95485036]])?")
+    # Check results - Note the result we have to compare with are not generated with the random seed 1234
+    # print("Is this: " + str(update_sequence_mean(mean, new_data, N)))
+    # print("Close to this: [[-0.85286428  1.95485036]])?")
 
     # Part 4
     print("Part 4") 
-    # Generate 100 2-dimensional points with mean [0, 0] and variance 3.
-    new_data = gen_data(100, 2, np.array([0, 0]), 3)
+    # Generate 100 2-dimensional points with mean [0, 0] and variance 3
+    n = 100
+    k = 2
+    mean = np.array([0.0, 0.0])
+    var = 3
+    new_data = gen_data(n, k, mean, var)
     
     # Set the initial mean estimate as (0, 0) assuming it's an initial mean estimate of 1 value
-    mean = np.array([0, 0])
+    mean = np.array([0.0, 0.0])
+    n = 1
 
-    # N is total number of data points
-    N = new_data.shape[0]+1
     # Plot the mean as it evolves with each added data point
-    #_plot_sequence_estimate(new_data, mean, save_fig=".\\4.png")
-    _plot_sequence_estimate(new_data, mean)
+    _plot_sequence_estimate(new_data, mean, n, save_fig=".\\4_1.png")
+    #_plot_sequence_estimate(new_data, mean, n)
 
 
     # Part 5
     print("Part 5")
     # Create 100 3-dimensional data points with mean [0,0,0] and variance 4
-    mean = [0,0,0]
+    mean = [0.0, 0.0, 0.0]
     variance = 4
     data_5 = gen_data(100, 3, mean, variance)
     #_plot_sequence_estimate(data_5, save_fig=".\\03_sequential_estimation\\5.png")
     #_plot_sequence_estimate(data_5)
 
-
+    '''
     # Part 6
     print("Part 6")
     #_plot_mean_square_error(data_5, mean)
     _plot_mean_square_error(data_5, mean, ".\\6.png")
 
-
+    '''
+    
     # Confirmation message for a succesful run
     print("\n---------------------------------------------------------------\nRun succesful :)\n")
 

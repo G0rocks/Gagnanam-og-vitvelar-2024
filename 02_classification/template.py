@@ -16,40 +16,41 @@ RANDOM_SEED = 1234
 def gen_data(
     n: int,
     locs: np.ndarray,
-    scales: np.ndarray,
-    n_classes: int
+    scales: np.ndarray
+    # n_classes: int
 ) -> np.ndarray:
     '''
     Return n data points, their classes and a unique list of all classes, from each normal distributions
     shifted and scaled by the values in locs and scales
     
     n:  How many data points should be returned
-    locs:   Array of k means where k is the number of dimensions used in the data points
-    scale:  Array of k standard deviations where k is the number of dimensions used in the data points
-    n_classes: Number of classes
+    locs:   Array of means. c X k array where c is the number of classes and k is the number of dimensions used in the data points. Here k=1 for simplification
+    scale:  Array of standard deviations. c X k array where c is the number of classes and k is the number of dimensions used in the data points. Here k=1 for simplification
+    # n_classes: Number of classes
     
     Returns the data points, the target classes in the same order as the data points and a list of classes
     '''
     # Find k, the number of dimensions in each data vector
-    k = locs.shape[0]
+    k = 1   # k = 1 because this is a simplified case
+    
+    # Find out the number of classes
+    n_classes = locs.shape[0]
 
     # Init empty data array with n rows and k columns
     data    = np.empty([n,k])
     # Init empty target array with n rows
     targets  = np.empty(n, dtype=int)
-    # Find out number of classes and generate data_classes
+    # Generate data_classes
     data_classes    = np.array(range(0, n_classes))
 
     # Loop through each data point, n loops
     for i in range(n):
+        # Check which class it belongs to and assign data point class to targets
+        targets[i] = np.random.randint(n_classes)
         # Loop through each dimension and generate value, log to data array
         for j in range(k):
-            data[i,j] = norm.rvs(locs[j], scales[j])
-    
-    # Loop through each target, n loops, generate random class for each data point
-    for i in range(n):
-        targets[i] = np.random.randint(0, n_classes)
-        
+            data[i,j] = norm.rvs(locs[targets[i]], scales[targets[i]])
+            
     # Return data points, target classes and array listing all classes
     return data, targets, data_classes
 
@@ -166,7 +167,7 @@ def likelihood_of_class(
     '''
     # Find class standard deviation from covariance
     # Init class_std_dev
-    class_std_dev = np.zeros(class_covar.shape[0])
+    class_std_dev = np.zeros(class_covar)
     # For each variance value on the diagonal of the covariance matrix, take the square root
     for i in range(class_covar.shape[0]):
         class_std_dev[i] = np.sqrt(class_covar[i][i])
@@ -245,7 +246,7 @@ if __name__ == '__main__':
     std_devs = np.array([np.sqrt(5), np.sqrt(5)])
     n_classes = 3   # Assume 3 classes since no place in the assignment instructions gives an idea for how many classes there are
     # Create data points, targets and classes
-    data_points, targets, classes = gen_data(n_data_points, means, std_devs, n_classes) # load_iris()    # Example: load_data(2, [0, 2], [4, 4]) not working
+    data_points, targets, classes = gen_data(n_data_points, means, std_devs) #, n_classes) # load_iris()    # Example: load_data(2, [0, 2], [4, 4]) not working
     # Split data    
     (train_data, train_targets), (test_data, test_targets) = split_train_test(data_points, targets, train_ratio=0.8)
 
@@ -273,8 +274,8 @@ if __name__ == '__main__':
 
     # Loop through all data points, add each one to plot, depending on target, set marker
     for i in range(n_data_points):
-        x = data_points[i,0]
-        y = data_points[i,1]
+        x = data_points[i]
+        y = 0   # Set to zero since data_points is a n X 1 array in this simplified version
         
         # Get target class and corresponding color
         color_index = targets[i]

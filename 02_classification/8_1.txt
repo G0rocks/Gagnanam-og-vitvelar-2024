@@ -1,0 +1,20 @@
+For part A:
+            The results were different, the accuracy for the new data was 100%, 40% more than the accuracy for the old data.
+            For part B:
+            When I increased the number of data points for the old dataset to 500 instead of 50, the accuracy went up to 71% and was only 29% less            than the new dataset.
+            But when I reduced the number of points for the new set to 25, the accuracy was still 100%.
+            Changing the new mean to -2 and +2 resulted in an accuracy of 70% for the new dataset but in that case the old one got 80% accuracy.
+            I expected the standard deviation to have the most effect so I increased it to sqrt(10) for the new dataset, expecting lower accuracy.
+            but ended up with 90% accuracy that time and 80% for the old dataset.
+            To explain why these things happen I think I would need to do this very often or with the same randomness every time.
+            Realising I forgot to set the random seed in the beginning of my code I run it again and default to the old acc being 80% and the new being 70%.
+            With 500 old data points, new std_dev at sqrt(10), the old acc is 62% and the new 90%.
+            With the new mean being -2 and +2, new std_dev at sqrt(10), the old acc is 80% still and the new acc stayed at 70%.
+            With the new std_dev at sqrt(2) the old acc is 80% still and the new acc is 100%.
+            That's in line with my expectations that lower deviation results in higher accuracy, probably because the classes don't overlap as much, meaning the maximum likelihood is likelier to be correct.
+            The same is applicable to the mean, if the means are further from each other then it's unlikelier that the deviation will cause the values to overlap.
+            I'm starting to think https://en.meming.world/images/en/a/aa/Something_of_a_Scientist.jpg
+
+            Note: About the submission, now that I've updated the data_gen function to be in accordance with how I was told to have it, the gradescope gives me errors about not having enough values to unpack things.
+            This was not a problem in my previous version which had n_classes as an input for the gen_data function.
+            Note: For next year, add more explicitness about the number of classes and number of columns in the features array there should be.

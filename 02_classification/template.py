@@ -140,9 +140,9 @@ def covar_of_class(
 
     # Estimate covariance for the features in matching_features
     # Use np.cov see help.py
-    class_covar = np.cov(matching_features, rowvar=False)   # rowvar false since columns represent features (variables) and lines represent values of data
-    #print("Class covar:")
-    #print(str(class_covar))
+    class_covar = np.cov(matching_features, rowvar=False).reshape(-1)   # rowvar false since columns represent features (variables) and lines represent values of data
+    # print("Class covar:")
+    # print(str(class_covar))
 
     # Return class_covar
     return class_covar
@@ -154,9 +154,7 @@ def likelihood_of_class(
     class_covar: np.ndarray
 ) -> float:
     '''
-    Estimate the likelihood that a sample is drawn
-    from a multivariate normal distribution, given the mean
-    and covariance of the distribution.
+    Estimate the likelihood that a sample is drawn from a multivariate normal distribution, given the mean and covariance of the distribution.
 
     feature:    Data point with all the features of the object to be classified
     class_mean: Mean of all features in the class
@@ -167,15 +165,14 @@ def likelihood_of_class(
     '''
     # Find class standard deviation from covariance
     # Init class_std_dev
-    class_std_dev = np.zeros(class_covar)
+    class_std_dev = np.zeros(class_covar.shape[0])
     # For each variance value on the diagonal of the covariance matrix, take the square root
     for i in range(class_covar.shape[0]):
-        class_std_dev[i] = np.sqrt(class_covar[i][i])
+        class_std_dev[i] = np.sqrt(class_covar[i])
     
     # Find class likelihood
     class_likelihood = norm(class_mean, class_std_dev).pdf(feature)
     return class_likelihood
-
 
 def maximum_likelihood(
     train_data: np.ndarray,
@@ -192,28 +189,73 @@ def maximum_likelihood(
     a [test_data.shape[0] x len(classes)] shaped numpy
     array
     '''
+    # Init means and covariances (covs) for all classes
     means, covs = [], []
+    # For each class, calculate the mean and covariance in the training set, append to means and covs
     for class_label in classes:
-        ...
-    likelihoods = []
-    for i in range(test_data.shape[0]):
-        ...
-    return np.array(likelihoods)
+        # Find and append mean of class to means
+        means.append(mean_of_class(train_data, train_targets, class_label))
+        # Find and append covariance of class to covs
+        covs.append(covar_of_class(train_data, train_targets, class_label))
+        
+    # Init likelihoods a [c X n] array where c are the number of classes and n are the number of data points in the test set
+    # Find c
+    c = len(classes)
+    # Find n
+    n = test_data.shape[0]
+    
+    # Init likelihoods
+    likelihoods = np.empty((c, n))
+    # For each data point in the test set and each class, calculate likelihood of data point belonging to that specific class. Log value in likelihoods
+    # Loop through each class
+    for i in range(c):
+        # Loop through test data points
+        for j in range(n):
+            # Calculate likelihood of data point belonging to class, log in likelihoods
+            likelihoods[i, j] = likelihood_of_class(test_data[j], means[i], covs[i])
+        
+    # Return likelihoods
+    return likelihoods
 
-
-
-def predict(likelihoods: np.ndarray):
+def predict(likelihoods: np.ndarray) -> np.ndarray:
     '''
     Given an array of shape [num_datapoints x num_classes]
     make a prediction for each datapoint by choosing the
     highest likelihood.
 
-    You should return a [likelihoods.shape[0]] shaped numpy
+    likelihoods:    The maximum likelihood for each test point as found in maximum_likelihood
+
+    Returns: A [likelihoods.shape[0]] shaped numpy
     array of predictions, e.g. [0, 1, 0, ..., 1, 2]
     '''
-    ...
+    # Find num_datapoints
+    num_datapoints = likelihoods.shape[0]
+    # Find num_classes
+    num_classes = likelihoods.shape[1]
+    
+    # Init predictions, an array with num_datapoints values
+    predictions = np.zeros(num_datapoints)
+    
+    # For each datapoint predict which class it will belong to based on the likelihoods
+    for i in range(num_datapoints):
+        # Init/reset max_likelihood to -1
+        max_likelihood = -1
+        
+        # Init/reset class_memory - Used to keep track of which class has the highest likelihood
+        class_memory = -1
+        
+        # For each class, compare likelihood to the max_likelihood of this datapoint
+        for j in range(num_classes):
+            # If the likelihood of this data point belonging to this class is higher than max_likelihood, update max_likelihood with the likelihood value and log the current class being checked to class_memory
+            if likelihoods[i, j] > max_likelihood:
+                max_likelihood = likelihoods[i, j]
+                class_memory = j
+                    
+        # Log class_memory to predictions for this datapoint
+        predictions[i] = class_memory
 
-
+    # Return predictions
+    return predictions
 
 # Felt cute, might delete maximum_aposteriori later
 def maximum_aposteriori(
@@ -306,7 +348,7 @@ if __name__ == '__main__':
     # Find class mean in the training data
     given_class = 0
     class_mean = mean_of_class(train_data, train_targets, given_class)
-        
+
     # Part 4
     print("Part 4 - Class covariance")
     given_class = 0
@@ -315,13 +357,15 @@ if __name__ == '__main__':
     # Part 5
     print("Part 5 - Class likelihood")
     class_likelihood = likelihood_of_class(test_data[0, :], class_mean, class_cov)
-    
+
     # Part 6
-    print("Part 6")
-    
+    print("Part 6 - Maximum likelihood")
+    max_likelihood = maximum_likelihood(train_data, train_targets, test_data, classes)
 
     # Part 7
-    print("Part 7")
+    print("Part 7 - Predict likelihoods")
+    likelihood_prediction = predict(max_likelihood.transpose())
+    print(likelihood_prediction)
 
     # Part 8
     print("Part 8")

@@ -513,15 +513,3 @@ if __name__ == '__main__':
         print("Fail")
 
 '''
-
-# From exercise 5 in 2023
-'''
-    print("Þetta er rangt en virkar þegar ég set það inn á gradescope svo ¯\_(ツ)_/¯")
-    if np.array_equal(covar_of_class(train_data, train_targets, 0), np.array([[0.11182346, 0.09470383, 0.01757259, 0.01440186],
-                                                                            [0.09470383, 0.14270035, 0.01364111, 0.01461672],
-                                                                            [0.01757259, 0.01364111, 0.03083043, 0.00717189],
-                                                                            [0.01440186, 0.01461672, 0.00717189, 0.01229384]])):
-        print("Pass")
-    else:
-        print("Fail")
-'''

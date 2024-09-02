@@ -86,7 +86,14 @@ def mean_of_class(
     returns class_mean array with feature means for the selected_class
     '''
     # Get feature dimensions
-    n_data, n_features = np.shape(features)
+    # Try catch because of gradescope problems
+    try:
+        n_data, n_features = np.shape(features)
+        gradescope = False
+    except:
+        n_data = np.shape(features)[0]
+        n_features = 1
+        gradescope = True
     
     # Get number of selected_class instances in targets
     n_class_instances = _get_num_class_in_targets(targets, selected_class)
@@ -99,7 +106,10 @@ def mean_of_class(
         # If the target is the selected class add the features to the class_mean
         if targets[i] == selected_class:
             for j in range(n_features):
-                class_mean[j] = class_mean[j] + features[i][j]
+                if gradescope:
+                    class_mean[j] = class_mean[j] + features[i]
+                else:
+                    class_mean[j] = class_mean[j] + features[i][j]
 
     # Find mean of each feature in class_mean
     for j in range(n_features):
@@ -126,8 +136,16 @@ def covar_of_class(
     # Get number of selected_class instances in targets
     n_class_instances = _get_num_class_in_targets(targets, selected_class)
 
-    # Initialize empty array of class features. First get features dimensions
-    lines, columns = features.shape
+    # Initialize empty array of class features. First get features dimensions    
+    # Try catch because of gradescope problems
+    try:
+        lines, columns = np.shape(features)
+        gradescope = False
+    except:
+        lines = np.shape(features)[0]
+        columns = 1
+        gradescope = True
+    
     matching_features = np.zeros((n_class_instances, columns))
 
     # Input matching features from features into matching_features
@@ -136,8 +154,11 @@ def covar_of_class(
         # If target matches, insert feature
         if targets[i] == selected_class:
             for j in range(columns):
-                matching_features[n_features][j] = features[i][j]
-
+                if gradescope:
+                    matching_features[n_features][j] = features[i]
+                else:
+                    matching_features[n_features][j] = features[i][j]
+            # Update number of features
             n_features = n_features + 1
 
     # Estimate covariance for the features in matching_features
@@ -206,14 +227,14 @@ def maximum_likelihood(
     n = test_data.shape[0]
     
     # Init likelihoods
-    likelihoods = np.empty((c, n))
+    likelihoods = np.empty((n, c))
     # For each data point in the test set and each class, calculate likelihood of data point belonging to that specific class. Log value in likelihoods
-    # Loop through each class
-    for i in range(c):
-        # Loop through test data points
-        for j in range(n):
+    # Loop through test data points
+    for i in range(n):
+        # Loop through each class
+        for j in range(c):
             # Calculate likelihood of data point belonging to class, log in likelihoods
-            likelihoods[i, j] = likelihood_of_class(test_data[j], means[i], covs[i])
+            likelihoods[i, j] = likelihood_of_class(test_data[i], means[j], covs[j])
         
     # Return likelihoods
     return likelihoods

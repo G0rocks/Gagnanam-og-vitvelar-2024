@@ -29,6 +29,8 @@ def mvn_basis(
     * var: All normal distributions are isotropic with sigma^2*I covariance
     matrices (where I is the MxM identity matrix)
     
+    Note: The variable, var, is the variance, NOT THE COVARIANCE MATRIX!
+    
     Output:
     * fi - [NxM] is the basis function vectors containing a basis function
     output fi for each data vector x in features
@@ -36,16 +38,32 @@ def mvn_basis(
     # Get dimensions
     N, D = features.shape   # Get N, the number of data points and D the number of dimensions per data point
     M = mu.shape[0] # Get M, the number of rows in the mean tensor
-    fi = torch.zeros(N, M)  # Init fi, the *INSERT WHAT FI IS HERE*
+    fi = torch.zeros(N, M)  # Init fi, basically it's a similarity score for how similar each data point is to each mean
 
-    # Generate covariance matrix
-    covs = sigma*sigma*torch.eye(M)
+    # Generate covariance matrix, Sigma_k???? Or is var the covariance matrix?
+    cov_matrix = var*torch.eye(D)
     
     # Get multivariate normal, fi
     # Use gaussian basis function formula to find fi vectors
     # fi_k(x) = \frac{1}{(2\pi)^{D/2}} \frac{1}{|\Sigma_k|^{1/2}} e^{-\frac{1}{2} (x-\mu_k)^T \Sigma_k^{-1} (x-\mu_k)}
     # Note, can be called with the multivariate_normal() function from scipy
-    fi = multivariate_normal(mu, covs)
+    # from torch.distributions.multivariate_normal import MultivariateNormal
+    
+    
+    # Loop over each basis function mean vector - Loop made with assistant of ChatGPT, problematic since I have no idea how it works now or why
+    for i in range(M):
+        # Get the current mean vector
+        mean_vec = mu[i].numpy()
+        
+        # Calculate the multivariate normal distribution for the current mean
+        # and the isotropic covariance matrix
+        mvn = multivariate_normal(mean=mean_vec, cov=cov_matrix)
+        
+        # Compute the PDF for all features (NxD) and store it in the ith column of fi
+        fi[:, i] = torch.tensor(mvn.pdf(features.numpy()))
+    
+    # fi = multivariate_normal.pdf(features, mean_vec, cov_matrix) # NOT WORKING BECAUSE OF NUMPY ERROR!!!
+    # fi = torch.exp(-0.5 * torch.transpose((features-mu)) * cov_matrix^(-1) * (features - mu)) /(((2*torch.pi)^(D/2)) * (torch.abs(cov_matrix)^(0.5)))
 
     # Return phi
     return fi

@@ -14,7 +14,7 @@ from scipy.stats import multivariate_normal
 def mvn_basis(
     features: torch.Tensor,
     mu: torch.Tensor,
-    sigma: float
+    var: float
 ) -> torch.Tensor:
     '''
     Multivariate Normal Basis Function
@@ -26,7 +26,7 @@ def mvn_basis(
     data vectors.
     * mu: [MxD] matrix of M D-dimensional mean vectors defining
     the multivariate normal distributions.
-    * sigma: All normal distributions are isotropic with sigma*I covariance
+    * var: All normal distributions are isotropic with sigma^2*I covariance
     matrices (where I is the MxM identity matrix)
     
     Output:
@@ -76,7 +76,7 @@ def max_likelihood_linreg(
 def linear_model(
     features: torch.Tensor,
     mu: torch.Tensor,
-    sigma: float,
+    var: float,
     w: torch.Tensor
 ) -> torch.Tensor:
     '''
@@ -84,7 +84,7 @@ def linear_model(
     * features: [NxD] is a data matrix with N D-dimensional data vectors.
     * mu: [MxD] matrix of M D dimensional mean vectors defining the
     multivariate normal distributions.
-    * sigma: All normal distributions are isotropic with s*I covariance
+    * var: All normal distributions are isotropic with sigma^2*I covariance
     matrices (where I is the MxM identity matrix).
     * w: [Mx1] the weights, e.g. the output from the max_likelihood_linreg
     function.

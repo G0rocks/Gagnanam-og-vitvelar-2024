@@ -414,7 +414,7 @@ if __name__ == '__main__':
 
     # Part 7
     print("Part 7 - Predict likelihoods")
-    class_prediction = predict(max_likelihood.transpose())
+    class_prediction = predict(max_likelihood)
     print(class_prediction)
 
     # Part 8
@@ -452,7 +452,7 @@ if __name__ == '__main__':
     max_likelihood_8 = maximum_likelihood(train_data_8, train_targets_8, test_data_8, classes_8)
 
     # Predict classes
-    class_prediction_8 = predict(max_likelihood_8.transpose())
+    class_prediction_8 = predict(max_likelihood_8)
     print("New dataset class predictions: " + str(class_prediction_8))
 
     # Find accuracy of predictions from section 8

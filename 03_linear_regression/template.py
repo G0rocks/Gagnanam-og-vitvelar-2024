@@ -224,7 +224,7 @@ if __name__ == "__main__":
     # Part 4
     print("Part 4")
     predictions = linear_model(X, mu, var, w_ml)
-    print("Predictions shape: " + str(predictions[:,0].shape))
+    print("Predictions shape: " + str(predictions.shape))
 
     # Part 5
     print("Part 5")

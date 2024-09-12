@@ -70,7 +70,30 @@ def mvn_basis(
 
 
 def _plot_mvn():
-    pass
+    '''
+    Plot the output of each basis function, using the same parameters as above, as a function of the features.
+    You should plot all the outputs onto the same plot.
+    Turn in your plot as 2_1.png.
+    '''
+    # Loop through each basis function
+    for i in range(M):
+        # Plot basis function as a result of features, fi output on Y-axis and feature ID on X-axis
+        plt.plot(range(N), fi[:,i],  label = "Bias function " + str(i+1))
+
+    # Title
+    plt.title("Basis functions - Output from each data point")
+    
+    # Legend
+    # plt.legend()
+    
+    # Label axis
+    plt.xlabel("Features - ID") # Add ", fontsize = #" to control fontsize
+    plt.ylabel("fi(x)")
+    
+    # Save plot as 2_1.png
+    #plt.show()
+    plt.savefig(".\\Gagnanam-og-vitvelar-2024 git repo\\03_linear_regression\\2_1.png")
+    
 
 
 def max_likelihood_linreg(
@@ -88,6 +111,7 @@ def max_likelihood_linreg(
 
     Output: [Mx1], the maximum likelihood estimate of w for the linear model
     '''
+    
     pass
 
 
@@ -119,7 +143,8 @@ if __name__ == "__main__":
     Keep all your test code here or in another file.
     """
     # Part 1
-    print("Part 1")
+    print(" ")
+    print("\nPart 1")
     # Initialize data
     X, t = load_regression_iris()   # X = flower features, t = flower petal length
     # Get N, the number of data points and D the number of dimensions per data point
@@ -136,23 +161,27 @@ if __name__ == "__main__":
         mu[:, i] = torch.linspace(mmin, mmax, M)
     # Generate fi (a.k.a. phi), result of the multivariate normal basis function
     fi = mvn_basis(X, mu, sigma)
-    print(fi)
+    print("fi type: " + str(type(fi)) + "\nfi shape: " + str(fi.shape))
 
-
-
-    # Part 1.2
+    # Part 2
     print("Part 2")
+    print("Plotting...")
+    _plot_mvn()
+    print("Plot finished :)")
 
-    # Part 1.3
-    print("Part 1.3")
+    # Part 3
+    print("Part 3")
+    # Estimate maximum likelihood - Linear regression
+    lamda = 0.001
+    wml = max_likelihood_linreg(fi, t, lamda)
+    print("Maximum likelihood: " + str(wml))
+
+    # Part 4
+    print("Part 4")
 
 
-    # Part 1.4
-    print("Part 1.4")
-
-
-    # Part 1.5
-    print("Part 1.5")
+    # Part 5
+    print("Part 5")
 
 
 

@@ -180,6 +180,21 @@ def linear_model(
     # Return prediction:
     return predictions[:,0]
 
+def _square_error(actual: torch.Tensor, est: torch.Tensor) -> torch.Tensor:
+    '''
+    Finds the square error between estimation and actual value
+    actual  :   [N] Actual value
+    est     :   [N] Estimated value
+
+    returns the mean-square-error
+    Note: Does not do the mean part since there is only 1 column in the inputs and we would be dividing by 1
+    ms_error: [N]
+    '''
+    # Calculate error for each dimension
+    error = torch.pow(torch.sub(actual,est),2)
+    # Return average error
+    return error
+
 # Test area
 #---------------------------------------------------------------------------
 if __name__ == "__main__":
@@ -236,16 +251,49 @@ if __name__ == "__main__":
     '''
     # Find prediction accuracy
     # a) Actual values vs predicted values, subtract and get difference
+    print("Plotting simple error")
     error_simple = torch.sub(t,predictions)
-    print("target shape: " + str(t.shape))
-    print("Simple error shape: " + str(error_simple.shape))
+    # Plot error on Y-axis and feature ID on X-axis
+    plt.plot(range(N), error_simple)
+
+    # Title
+    plt.title("Simple error = actual values - predicted values") 
     
-    # b) mean-square-error function
+    # Label axis
+    plt.xlabel("Features - ID") # Add ", fontsize = #" to control fontsize
+    plt.ylabel("Error - simple")
     
+    # Save plot
+    # plt.show()
+    plt.savefig(".\\Gagnanam-og-vitvelar-2024 git repo\\03_linear_regression\\5_a.png")
+    
+    # Clear plot
+    plt.clf()
+    
+    # b) mean-square-error
+    print("Plotting mean-square-error")
+    error_sq = _square_error(t, predictions)
+
+    # Plot error on Y-axis and feature ID on X-axis
+    plt.plot(range(N), error_sq)
+
+    # Title
+    plt.title("Mean-square-error") 
+    
+    # Label axis
+    plt.xlabel("Features - ID") # Add ", fontsize = #" to control fontsize
+    plt.ylabel("Error - sq")
+    
+    # Save plot
+    # plt.show()
+    plt.savefig(".\\Gagnanam-og-vitvelar-2024 git repo\\03_linear_regression\\5_b.png")
     
     # Make text answer    
     print("Writing to txt file")
-    text_answer = "Lol"
+    text_answer = "Looking at the plots the predictions seem to be seperated into 3 groups.\n\
+        That or the data is in 3 groups since around the first 50 data points are very precisely predicted.\n\
+        From 50 to 100 the predictions get much worse and from 100 to 150 the data points are not really well\n\
+        predicted. Not sure what to make of that but it is very strange."
 
     with open('.\\Gagnanam-og-vitvelar-2024 git repo\\03_linear_regression\\5_1.txt', 'w') as f:
         f.write(str(text_answer))

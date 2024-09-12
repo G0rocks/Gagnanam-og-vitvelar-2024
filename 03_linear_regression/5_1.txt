@@ -1,1 +1,4 @@
-Lol
+Looking at the plots the predictions seem to be seperated into 3 groups.
+        That or the data is in 3 groups since around the first 50 data points are very precisely predicted.
+        From 50 to 100 the predictions get much worse and from 100 to 150 the data points are not really well
+        predicted. Not sure what to make of that but it is very strange.

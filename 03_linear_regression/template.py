@@ -125,7 +125,7 @@ def max_likelihood_linreg(
     # Finding maximum likelihood for weights (w_ML) - Eq. (4.14) from Bishop
     w_ML = MPp_inverse*targets
     '''
-    
+
     # Init regularization matrix (I matrix multiplied by lambda) - Note: Dimension M x M because of eq. (4.27)
     reg_matrix = torch.eye(M)*lamda
 
@@ -145,19 +145,40 @@ def linear_model(
     w: torch.Tensor
 ) -> torch.Tensor:
     '''
+    Simple linear model, does a linear combination between each data point and the weights.
+        
     Inputs:
-    * features: [NxD] is a data matrix with N D-dimensional data vectors.
-    * mu: [MxD] matrix of M D dimensional mean vectors defining the
+    * features  : [NxD] is a data matrix with N D-dimensional data vectors.
+    * mu        : [MxD] matrix of M D dimensional mean vectors defining the
     multivariate normal distributions.
-    * var: All normal distributions are isotropic with sigma^2*I covariance
+    * var       : All normal distributions are isotropic with sigma^2*I covariance
     matrices (where I is the MxM identity matrix).
-    * w: [Mx1] the weights, e.g. the output from the max_likelihood_linreg
+    * w         : [Mx1] the weights, e.g. the output from the max_likelihood_linreg
     function.
 
-    Output: [Nx1] The prediction for each data vector in features
+    Output:
+    * y         : [Nx1] The prediction for each data vector in features. Found with y(x,w) = w^T *fi(x), eq. (4.28) in Bishop
     '''
-    pass
+    # Generate design matrix (a.k.a. fi or phi), result of the multivariate normal basis function
+    design_matrix = mvn_basis(features, mu, var)
 
+    # Get matrix dimensions
+    N = features.shape[0]
+    D = features.shape[1]
+    M = mu.shape[0]
+
+    # Init predictions (A.k.a y)
+    predictions = torch.empty(N,1)
+
+    # Prediction of regression values with given weights - Eq. (4.29) in Bishop - Note: Switch order of matrix multiplication since it's equal to transposing both of them
+    # Note, had a hard time implementing equations with torch.matmul(w, design_matrix) or torch.matmul(design_matrix, w) so ended up doing by hand
+    # Loop through each data point and make a linear combination of the design matrix values and the weights
+    for i in range(N):
+        # Prediction for datapoint i, dot product between weight column i and design_matrix row i
+        predictions[i] = torch.dot(w[:,i],design_matrix[i,:])
+        
+    # Return prediction:
+    return predictions[:,0]
 
 # Test area
 #---------------------------------------------------------------------------
@@ -175,14 +196,15 @@ if __name__ == "__main__":
 
     # How many basis functions
     M = 10  # How many means per dimension we want
-    sigma = 10  # Standard deviation
+    var = 10.0    # Variance
+    sigma = var**(0.5)  # Standard deviation
     mu = torch.zeros((M, D))    # Init mean
     # For each dimension, make M linearly spacesd from the smallest to the largest value of the dataset in that dimension
     for i in range(D):
         mmin = torch.min(X[:, i])
         mmax = torch.max(X[:, i])
         mu[:, i] = torch.linspace(mmin, mmax, M)
-    # Generate fi (a.k.a. phi), result of the multivariate normal basis function
+    # Generate design matrix (a.k.a. fi or phi), result of the multivariate normal basis function
     design_matrix = mvn_basis(X, mu, sigma)
     print("design_matrix type: " + str(type(design_matrix)) + "\ndesign_matrix shape: " + str(design_matrix.shape))
 
@@ -201,11 +223,33 @@ if __name__ == "__main__":
 
     # Part 4
     print("Part 4")
-
+    predictions = linear_model(X, mu, var, w_ml)
+    print("Predictions shape: " + str(predictions[:,0].shape))
 
     # Part 5
     print("Part 5")
+    '''
+    This question should be answered in a raw text file, turn it in as 5_1.txt
+    How good are these predictions?
+    Use plots to show the prediction accuracy, either by plotting the actual values vs predicted values or the mean-square-error.
+    Submit your plots as 5_a.png, 5_b.png, etc. as needed.
+    '''
+    # Find prediction accuracy
+    # a) Actual values vs predicted values, subtract and get difference
+    error_simple = torch.sub(t,predictions)
+    print("target shape: " + str(t.shape))
+    print("Simple error shape: " + str(error_simple.shape))
+    
+    # b) mean-square-error function
+    
+    
+    # Make text answer    
+    print("Writing to txt file")
+    text_answer = "Lol"
 
+    with open('.\\Gagnanam-og-vitvelar-2024 git repo\\03_linear_regression\\5_1.txt', 'w') as f:
+        f.write(str(text_answer))
+    print("File updated")
 
 
     # Confirmation message for a succesful run

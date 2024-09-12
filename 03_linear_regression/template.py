@@ -32,19 +32,19 @@ def mvn_basis(
     Note: The variable, var, is the variance, NOT THE COVARIANCE MATRIX!
     
     Output:
-    * fi - [NxM] is the basis function vectors containing a basis function
-    output fi for each data vector x in features
+    * design_matrix - [NxM] is the basis function vectors containing a basis function
+    output design_matrix for each data vector x in features
     '''
     # Get dimensions
     N, D = features.shape   # Get N, the number of data points and D the number of dimensions per data point
     M = mu.shape[0] # Get M, the number of rows in the mean tensor
-    fi = torch.zeros(N, M)  # Init fi, basically it's a similarity score for how similar each data point is to each mean
+    design_matrix = torch.zeros(N, M)  # Init design_matrix, basically it's a similarity score for how similar each data point is to each mean
 
     # Generate covariance matrix, Sigma_k???? Or is var the covariance matrix?
     cov_matrix = var*torch.eye(D)
     
-    # Get multivariate normal, fi
-    # Use gaussian basis function formula to find fi vectors
+    # Get multivariate normal, design_matrix
+    # Use gaussian basis function formula to find design_matrix vectors
     # fi_k(x) = \frac{1}{(2\pi)^{D/2}} \frac{1}{|\Sigma_k|^{1/2}} e^{-\frac{1}{2} (x-\mu_k)^T \Sigma_k^{-1} (x-\mu_k)}
     # Note, can be called with the multivariate_normal() function from scipy
     # from torch.distributions.multivariate_normal import MultivariateNormal
@@ -59,15 +59,14 @@ def mvn_basis(
         # and the isotropic covariance matrix
         mvn = multivariate_normal(mean=mean_vec, cov=cov_matrix)
         
-        # Compute the PDF for all features (NxD) and store it in the ith column of fi
-        fi[:, i] = torch.tensor(mvn.pdf(features.numpy()))
+        # Compute the PDF for all features (NxD) and store it in the ith column of design_matrix
+        design_matrix[:, i] = torch.tensor(mvn.pdf(features.numpy()))
     
-    # fi = multivariate_normal.pdf(features, mean_vec, cov_matrix) # NOT WORKING BECAUSE OF NUMPY ERROR!!!
-    # fi = torch.exp(-0.5 * torch.transpose((features-mu)) * cov_matrix^(-1) * (features - mu)) /(((2*torch.pi)^(D/2)) * (torch.abs(cov_matrix)^(0.5)))
+    # design_matrix = multivariate_normal.pdf(features, mean_vec, cov_matrix) # NOT WORKING BECAUSE OF NUMPY ERROR!!!
+    # design_matrix = torch.exp(-0.5 * torch.transpose((features-mu)) * cov_matrix^(-1) * (features - mu)) /(((2*torch.pi)^(D/2)) * (torch.abs(cov_matrix)^(0.5)))
 
     # Return phi
-    return fi
-
+    return design_matrix
 
 def _plot_mvn():
     '''
@@ -77,8 +76,8 @@ def _plot_mvn():
     '''
     # Loop through each basis function
     for i in range(M):
-        # Plot basis function as a result of features, fi output on Y-axis and feature ID on X-axis
-        plt.plot(range(N), fi[:,i],  label = "Bias function " + str(i+1))
+        # Plot basis function as a result of features, design_matrix output on Y-axis and feature ID on X-axis
+        plt.plot(range(N), design_matrix[:,i],  label = "Bias function " + str(i+1))
 
     # Title
     plt.title("Basis functions - Output from each data point")
@@ -88,13 +87,11 @@ def _plot_mvn():
     
     # Label axis
     plt.xlabel("Features - ID") # Add ", fontsize = #" to control fontsize
-    plt.ylabel("fi(x)")
+    plt.ylabel("design_matrix(x)")
     
     # Save plot as 2_1.png
     #plt.show()
     plt.savefig(".\\Gagnanam-og-vitvelar-2024 git repo\\03_linear_regression\\2_1.png")
-    
-
 
 def max_likelihood_linreg(
     fi: torch.Tensor,
@@ -105,15 +102,41 @@ def max_likelihood_linreg(
     Estimate the maximum likelihood values for the linear model
 
     Inputs :
-    * Fi: [NxM] is the array of basis function vectors
+    * fi: [NxM] is the array of basis function vectors - THIS IS THE DESIGN MATRIX FROM EQ. (4.15) IN BISHOP!!!
     * t: [Nx1] is the target value for each input in Fi
-    * lamda: The regularization constant
+    * lamda: The regularization constant --> regularization matrix (lamda*I) [MxM]
 
-    Output: [Mx1], the maximum likelihood estimate of w for the linear model
+    Output: [Mx1], the maximum likelihood estimate of w for the linear model, w_ML
+    '''
+    # We have the design matrix (I call it a basis function matrix) - Eq. (4.15) from Bishop
+    design_matrix = fi
+    
+    # Find Moore-Penrose pseudo-inverse (MPp_inverse) of design matrix with regularization coefficient - Eq. (4.14) modified to Eq. (4.27) from Bishop
+    # We can't use this since we have the lambda
+    '''
+    # If design_matrix is square and inversible then Moore-Penrose pseudo-inverse of design matrix is the inverse of design matrix - According to chapter 4.1.3 in Bishop
+    if M == N:  # If design_matrix is square
+        if torch.det(design_matrix) != 0:
+            MPp_inverse = torch.inverse(design_matrix)
+    else:
+        design_matrix_T = torch.transpose(design_matrix, N, M)
+        MPp_inverse = torch.inverse(design_matrix_T*design_matrix)*design_matrix_T
+        
+    # Finding maximum likelihood for weights (w_ML) - Eq. (4.14) from Bishop
+    w_ML = MPp_inverse*targets
     '''
     
-    pass
+    # Init regularization matrix (I matrix multiplied by lambda) - Note: Dimension M x M because of eq. (4.27)
+    reg_matrix = torch.eye(M)*lamda
 
+    # Find transpose of design matrix (Swap dimension 0, rows, and dimension 1, columns)
+    design_matrix_T = torch.transpose(design_matrix,0,1)
+    
+    # Finding maximum likelihood for weights (w_ML) - Eq. (4.27) from Bishop
+    w_ML = torch.matmul(torch.inverse(reg_matrix + torch.matmul(design_matrix_T, design_matrix)), design_matrix_T)*targets
+    
+    # return weights
+    return w_ML
 
 def linear_model(
     features: torch.Tensor,
@@ -160,8 +183,8 @@ if __name__ == "__main__":
         mmax = torch.max(X[:, i])
         mu[:, i] = torch.linspace(mmin, mmax, M)
     # Generate fi (a.k.a. phi), result of the multivariate normal basis function
-    fi = mvn_basis(X, mu, sigma)
-    print("fi type: " + str(type(fi)) + "\nfi shape: " + str(fi.shape))
+    design_matrix = mvn_basis(X, mu, sigma)
+    print("design_matrix type: " + str(type(design_matrix)) + "\ndesign_matrix shape: " + str(design_matrix.shape))
 
     # Part 2
     print("Part 2")
@@ -173,8 +196,8 @@ if __name__ == "__main__":
     print("Part 3")
     # Estimate maximum likelihood - Linear regression
     lamda = 0.001
-    wml = max_likelihood_linreg(fi, t, lamda)
-    print("Maximum likelihood: " + str(wml))
+    w_ml = max_likelihood_linreg(design_matrix, t, lamda)
+    print("Maximum likelihood: " + str(w_ml))
 
     # Part 4
     print("Part 4")

@@ -114,7 +114,7 @@ def ffnn(
 def cross_entropy_error(y: torch.Tensor, t: torch.Tensor) -> float:
     '''
     Returns the cross entropy error for classification of this specific data point.
-    Formula 5.80 from Bishop
+    Equation 5.80 and 6.36 from Bishop
     
     Inputs:
     y   : The neural networks estimate (the guess) for targets. Size K where K is the number of classes
@@ -133,7 +133,6 @@ def cross_entropy_error(y: torch.Tensor, t: torch.Tensor) -> float:
         E[k] = - (t[k]*torch.log(y[k]))
     
     return E
-
 
 def make_dE2(target: torch.Tensor, z1: torch.Tensor, W2: torch.Tensor) -> torch.Tensor:
     '''
@@ -159,11 +158,13 @@ def make_dE2(target: torch.Tensor, z1: torch.Tensor, W2: torch.Tensor) -> torch.
     # Initialize dE2
     dE2 = torch.zeros((M_plus_1, K))
     
+    print("Target: " + str(target))
     # Loop through each row and column of dE2 and fill value
     for m in range(M_plus_1):   # Loop through rows
         for k in range(K):      # Loop through columns
-            a = z1[m].item()*W2[m][k].item()
+            a = z1[m]*W2[m][k]
             dE2[m][k] = target[k].item()*d_sigmoid(a)/sigmoid(a)
+        print("Last column value: " + str(a))
     
     # Return dE2
     return dE2
@@ -209,15 +210,18 @@ def backprop(
     delta_k = y-target_y
     
     # Step 3: Calculate: the hidden layer error delta_j = \frac{d}{da} sigma(a_j^1)*sum_k(w_{k, j+1}*delta_k) (the +1 is because of the bias weights)
-    delta_j = d_sigmoid(a1)*torch.sum(torch.matmul(W2, delta_k))
+    # delta_j_Huldar = d_sigmoid(a1)*torch.sum(torch.matmul(W2, delta_k))
+    delta_j_Elisa = d_sigmoid(a1) * torch.matmul(W2[1:, :], delta_k)
+    # Currently using Elisas delta j formula since she got this section correct and I did not.
+    delta_j = delta_j_Elisa
  
     # Step 4: Initialize dE1 and dE1 as zero-matrices with the same shape as W1 and W2
-    # Find Error using cross-entropy error function (for classification), eq. 5.80 in Bishop
+    # Find Error using cross-entropy error function (for classification), eq. 5.80 and eq. 6.36 in Bishop
+    dE1 = torch.zeros(W1.size())
+    dE2 = torch.zeros(W2.size())
+    
     E = cross_entropy_error(y, target_y)
     dE2 = make_dE2(target_y, z1, W2)
-
-    # dE1 = torch.zeros(W1.size())
-    # dE2 = torch.zeros(W2.size())
         
     # Step 5: Calculate dE1_{i,j} = delta_j*z_i^(0) and dE2_{j,k} = delta_k*z_j^(1)
     # dE1 = torch.matmul(delta_j,z0)
@@ -225,10 +229,20 @@ def backprop(
     # (delta E / delta w_ji)
     # dE2 = dE / delta_k
     # dE1 = torch.matmul(d_sigmoid(a1),torch.matmul(dE2,torch.transpose(W2,0,1)))
-    dE1 = 1
+    
+    # Step 5 from Elisa - Update gradients for dE1 and dE2
+    # For the first layer weights (between input and hidden layer)
+    for i in range(W1.shape[0]):  # Loop over D+1 (input + bias)
+        for j in range(W1.shape[1]):  # Loop over M (hidden neurons)
+            dE1[i, j] = delta_j[j] * z0[i]
+    
+    # For the second layer weights (between hidden and output layer)
+    for j in range(W2.shape[0]):  # Loop over M+1 (hidden neurons + bias)
+        for k in range(W2.shape[1]):  # Loop over K (output neurons)
+            dE2[j, k] = delta_k[k] * z1[j]
+    
     # Return outputs
     return y, dE1, dE2
-
 
 def train_nn(
     X_train: torch.Tensor,
@@ -362,18 +376,17 @@ if __name__ == "__main__":
     #                         [ 4.3018e-02,  6.2442e-03,  6.0890e-04,  2.3974e-02,  1.2759e-03, -1.0807e-01],
     #                         [ 6.1455e-03,  8.9203e-04,  8.6985e-05,  3.4249e-03,  1.8227e-04, -1.5439e-02]])))
 
-    print(str(dE2))
-    print(str(torch.tensor([[-0.2953,  0.5229,  0.5533],
+    '''
+    # print(str(dE2))
+    # print(str(torch.tensor([[-0.2953,  0.5229,  0.5533],
                                 [-0.1518,  0.2687,  0.2844],
                                 [-0.2923,  0.5175,  0.5476],
                                 [-0.2938,  0.5201,  0.5504],
                                 [-0.0078,  0.0139,  0.0147],
                                 [-0.2948,  0.5220,  0.5524],
                                 [-0.2709,  0.4796,  0.5075]])))
-
-
-    
     '''
+    
     if  str(dE1) == str(torch.tensor([[ 3.0727e-02,  4.4601e-03,  4.3493e-04,  1.7125e-02,  9.1134e-04, -7.7194e-02],
                                         [ 1.5671e-01,  2.2747e-02,  2.2181e-03,  8.7336e-02,  4.6478e-03, -3.9369e-01],
                                         [ 1.0755e-01,  1.5611e-02,  1.5222e-03,  5.9936e-02,  3.1897e-03, -2.7018e-01],
@@ -388,9 +401,9 @@ if __name__ == "__main__":
                                         [-0.2709,  0.4796,  0.5075]])):
         
         print("Pass")
+        n_sections_correct = n_sections_correct + 2/3
     else:
         print("Fail")
-    '''
     
     # 2 - Training the network
     # 2.1
@@ -415,6 +428,7 @@ if __name__ == "__main__":
 '''
     if str() == str() :
         print("Pass")
+        n_sections_correct = n_sections_correct + 1
     else:
         print("Fail")
 '''

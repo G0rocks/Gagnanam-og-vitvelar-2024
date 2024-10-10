@@ -261,8 +261,25 @@ def train_nn(
     made and the actual target
     3. Backpropagating the error through the network to adjust
     the weights.
+    
+    Inputs:
+    X_train     : Training data, size (N X D)
+    t_train     : Training data target values [N]
+    M, K, W1, W2 are defined as above
+    iterations  : Number of iterations the training should take, i.e. how often we should update the weights
+    eta         : Learning rate.
+
+    
+    Outputs:
+    W1tr                    : Updated weight matrix for left side of neural network. Size ()
+    W2tr                    : Updated weight matrix for right side of neural netwprk. Size ()
+    E_tot                   : 
+    misclassification_rate  : 
+    guesses                 :
     '''
-    ...
+    pass
+    # Return  W1tr, W2tr, E_total, misclassification_rate, guesses
+    return  W1tr, W2tr, E_total, misclassification_rate, guesses
 
 
 def test_nn(
@@ -408,16 +425,19 @@ if __name__ == "__main__":
     # 2 - Training the network
     # 2.1
     n_sections = n_sections+1
-    #print("2.1")
+    print("2.1")
+    W1tr, W2tr, E_total, misclassification_rate, guesses = train_nn(X_train, t_train, M, K, W1, W2, iterations, eta)
+    
+    
     
     
     # 2.2
     n_sections = n_sections+1
-    #print("2.2")
+    print("2.2")
     
     # 2.3
     n_sections = n_sections+1
-    #print("2.3")
+    print("2.3")
     
 
     

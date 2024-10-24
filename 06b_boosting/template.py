@@ -1,4 +1,11 @@
+# Author: Huldar
+# Date: 2024-10-21
+# Project: Assignment 6b
+# Notes: Point is to learn about sklearn and random forests
+# Acknowledgements: 
+#
 
+# Imports
 import os
 import numpy as np
 import pandas as pd
@@ -78,3 +85,35 @@ def _create_submission():
     ...
     prediction = ...
     build_kaggle_submission(prediction)
+    
+    
+    
+# Testing area
+#----------------------------------------------------------------------------------------------    
+if __name__ == "__main__":
+    """
+    You can test your code inside this scope without having to comment it out
+    everytime before submitting. It also makes it easier for you to
+    know what is going on in your code.
+    """
+ 
+    # Section 2.5
+    
+    # Section 2.6
+    
+    # Section 3 - Get best classifier and submit to kaggle, might be optional, but you can see how you would have faired in the competition
+    # Section 3.1
+    
+    
+    
+    # Confirmation message for a succesful run
+    print("\n---------------------------------------------------------------\nRun succesful :)\n")
+    print(("Estimated {:.2f} points out of " + str(n_sections) + "\nGrade estimate: {:.2f}\n").format(n_sections_correct, 10*n_sections_correct/n_sections))
+
+'''
+    if str() == str() :
+        print("Pass")
+        n_sections_correct = n_sections_correct + 1
+    else:
+        print("Fail")
+'''

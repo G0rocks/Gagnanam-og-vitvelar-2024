@@ -1,0 +1,4 @@
+1: 10, the highest value we tried.
+2: if K = N then each datapoint would be its own cluster and this whole thing would be kind of pointless.
+    Each datapoint would belong to its own "cluster" and the r matrix would reflect that resulting in no changes per iteration.
+3: It is not a good strategy to set K = N, see answer to question 1_8_2 for explanation.

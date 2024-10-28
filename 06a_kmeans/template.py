@@ -171,9 +171,9 @@ def k_means(X: np.ndarray, K: int, num_its: int) -> Union[list, np.ndarray, np.n
     num_its : The number of iterations
 
     Returns:
+    J_hats  : List, length num_its, of the value of the objective function for each iteration
     Mu      : A [K x f] array of prototypes where each row is a prototype vector
     R       : A [N x K] array of indicators.
-    J_hats  : List, length num_its, of the value of the objective function for each iteration
     '''
     # Standardize the sample data, find mean and standard deviation
     # Note: run the k_means algorithm on X_standard, not X.
@@ -211,7 +211,6 @@ def k_means(X: np.ndarray, K: int, num_its: int) -> Union[list, np.ndarray, np.n
 
     # Return Mu, R and J_hats
     return [J_hats, Mu, R]
-
 
 def _plot_j(iters: int, js: list):
     '''
@@ -276,7 +275,7 @@ def _plot_multi_j(X: np.ndarray, iters: int = 10, ks: list = [2, 3, 5, 10]):
             if col == 0:
                 subplots[row][col].set_ylabel("J hat")
             # Title plot
-            subplots[row][col].set_title("k = " + str(k))
+            subplots[row][col].set_title("k = " + str(ks[k]))
     
     # Save plot as 1_7_1.png
     plt.savefig("06a_kmeans\\1_7_1.png")
@@ -284,26 +283,60 @@ def _plot_multi_j(X: np.ndarray, iters: int = 10, ks: list = [2, 3, 5, 10]):
 
 def k_means_predict(X: np.ndarray, t: np.ndarray, classes: list, num_its: int) -> np.ndarray:
     '''
-    Determine the accuracy and confusion matrix
-    of predictions made by k_means on a dataset
-    [X, t] where we assume the most common cluster
-    for a class label corresponds to that label.
 
-    Input arguments:
-    * X (np.ndarray): A [n x f] array of input features
-    * t (np.ndarray): A [n] array of target labels
-    * classes (list): A list of possible target labels
-    * num_its (int): Number of k_means iterations
 
-    Returns:
-    * the predictions (list)
+    Inputs:
+    X : A [N x f] array of input features
+    t : A [N] array of target labels
+    classes : A list of possible target labels. The number of classes, K, tells us how many clusters to make
+    num_its : Number of k_means iterations
+
+    Output:
+    the predictions : [N] 
     '''
-    ...
+    # Find K, the number of classes
+    K = len(classes)
+    # Find N, the number of datapoints
+    N = X.shape[0]
+    
+    # Run k_means algorithm to get J_hats, Mu and R
+    J_hats, Mu, R = k_means(X, K, num_its)
+    
+    # Initialize predictions
+    predictions = np.zeros(N)
+    
+    # Loop through each datapoint
+    for n in range(N):
+        # Reinitialize class_ID
+        class_ID = -1
+
+        # Loop through each column of R
+        for k in range(K):
+            # The column of R which is equal to 1 indicates which class the datapoint belongs to, get class_ID
+            if R[n][k] == 1:
+                class_ID = k
+        # End for k
+        # save the class ID to our predictions
+        predictions[n] = class_ID
+    # End for n
+    
+    # return predictions
+    return predictions
 
 
 def _iris_kmeans_accuracy():
+    '''
+    Determine the accuracy of predictions made by k_means on a dataset [X, t] where we assume
+    the most common cluster for a class label corresponds to that label.
+    '''
     ...
-
+    
+def _iris_kmeans_confusion_matrix():
+    '''
+    Determine the confusion matrix of predictions made by k_means on a dataset [X, t] where we
+    assume the most common cluster for a class label corresponds to that label.
+    '''
+    pass
 
 def _my_kmeans_on_image():
     ...
@@ -470,19 +503,62 @@ if __name__ == "__main__":
     ks = [2, 3, 5, 10]
     _plot_multi_j(X, num_its, ks)
     print("Complete")
-
+    n_sections_correct = n_sections_correct + 0.5
 
     # 1.8
     n_sections = n_sections+1
     print("1.8 - ",end="")
+    '''Answer the following questions:
+
+    According to the results from section 1.7, what is the best value of k according to the objective function?
+    If we have n samples and we set k = n , what would happen?
+    Is it a good strategy to set k = n ? Why/Why not?'''
+    # Make text answer
+    text_answer = "1: 10, the highest value we tried.\n\
+2: if K = N then each datapoint would be its own cluster and this whole thing would be kind of pointless.\n\
+    Each datapoint would belong to its own \"cluster\" and the r matrix would reflect that resulting in no changes per iteration.\n\
+3: It is not a good strategy to set K = N, see answer to question 1_8_2 for explanation."
+
+    with open('.\\06a_kmeans\\1_8.txt', 'w') as f:
+        f.write(str(text_answer))
+    print("File updated")
+    n_sections_correct = n_sections_correct + 0.5
 
     # 1.9
     n_sections = n_sections+1
     print("1.9 - ",end="")
+    X, y, c = load_iris()
+    num_its = 5
+    predictions = k_means_predict(X, y, c, num_its)
+    print("Complete")
+    n_sections_correct = n_sections_correct + 0.5
+
+    print("Predictions:")
+    print(predictions)
+    print("Example output:")
+    print("[0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0.\n\
+ 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0.\n\
+ 0. 0. 2. 2. 2. 1. 1. 1. 2. 1. 1. 1. 1. 1. 1. 1. 1. 2. 1. 1. 1. 1. 1. 1.\n\
+ ...\n\
+ 2. 1. 2. 1. 2. 2. 1. 1. 2. 2. 2. 2. 2. 1. 1. 2. 2. 2. 1. 2. 2. 2. 1. 2.\n\
+ 2. 2. 1. 2. 2. 1.]")
 
     # 1.10
     n_sections = n_sections+1
     print("1.10 - ",end="")
+    '''Answer the following questions:
+    Using the actual class labels of the samples and the predictions made by k_means determine the accuracy and confusion matrix of the prediction.
+    You can use _iris_kmeans_accuracy for this.'''
+    # Make text answer
+    text_answer = "1: 10, the highest value we tried.\n\
+2: if K = N then each datapoint would be its own cluster and this whole thing would be kind of pointless.\n\
+    Each datapoint would belong to its own \"cluster\" and the r matrix would reflect that resulting in no changes per iteration.\n\
+3: It is not a good strategy to set K = N, see answer to question 1_8_2 for explanation."
+
+    with open('.\\06a_kmeans\\1_8.txt', 'w') as f:
+        f.write(str(text_answer))
+    print("File updated")
+    n_sections_correct = n_sections_correct + 0.5
 
     ## Section 2 - Clustering an image
     # 2.1

@@ -56,11 +56,11 @@ def determine_r(dist: np.ndarray) -> np.ndarray:
     dist : A [N x K] array of distances
 
     Returns:
-    r : A [N x K] array where r[i, j] is 1 if sample i is closest to prototype j and 0 otherwise.
+    R : A [N x K] array where R[i, j] is 1 if sample i is closest to prototype j and 0 otherwise.
     '''
-    # Init r as zeros of size (N x K)
+    # Init R as zeros of size (N x K)
     N, K = dist.shape
-    r = np.zeros([N,K],dtype=int)
+    R = np.zeros([N,K],dtype=int)
     
     # Loop through each row of dist and set the value in r to 1 for the lowest corresponding distance in dist
     for n in range(N):
@@ -75,11 +75,12 @@ def determine_r(dist: np.ndarray) -> np.ndarray:
                 index = k
         # end for k
         
-        # Set value for r at index as 1
-        r[n,index] = 1
+        # Set value for R at index as 1
+        R[n,index] = 1
     # end for n
-            
-    return r
+    
+    # Return R
+    return R
 
 def determine_j(R: np.ndarray, dist: np.ndarray) -> float:
     '''
@@ -91,21 +92,27 @@ def determine_j(R: np.ndarray, dist: np.ndarray) -> float:
     dist : [N x K] array of distances
 
     output:
-    j : The value of the objective function
+    j_hat : The value of the objective function
     '''
     # Get linear combination of R and dist for each row in dist
     # Find minimum value
     # j = np.min(dist.dot(R.transpose()))
     N, K = dist.shape
     
-    j = 0
+    j_hat = 0
     
     for n in range(N):
         for k in range(K):
-            j = j + r[n][k]*dist[n][k] #*dist[n][k]
+            j_hat = j_hat + R[n][k]*dist[n][k] #*dist[n][k]
+
+    '''
+    # How Danielle did it
+    total_dist = np.sum(R*dist)
+    average_dist = total_dist / R.shape[0]
+    '''
     
-    # return j
-    return j/N
+    # return j_hat
+    return j_hat/N
 
 def update_Mu(Mu: np.ndarray, X: np.ndarray, R: np.ndarray) -> np.ndarray:
     '''
@@ -145,37 +152,73 @@ def update_Mu(Mu: np.ndarray, X: np.ndarray, R: np.ndarray) -> np.ndarray:
 
         # Set row k in mu_new as rx_sum/r_sum
         mu_new[k] = rx_sum/r_sum
-
+        # Check for division by zero, if zero, reinitalize mu to random datapoint
+        if r_sum == 0:
+            mu_new[k] = X[np.random.randint(0,N)]
+            # raise ZeroDivisionError("Division by zero in update_mu")
     # End for k
 
     # Return mu_new
     return mu_new
 
-def k_means(
-    X: np.ndarray,
-    k: int,
-    num_its: int
-) -> Union[list, np.ndarray, np.ndarray]:
-    # We first have to standardize the samples
+def k_means(X: np.ndarray, K: int, num_its: int) -> Union[list, np.ndarray, np.ndarray]:
+    '''
+    Performs the K-means algorithm according to the github instructions.
+
+    Inputs:
+    X       : A [N x f] array of samples.
+    K       : Numberof clusters of data points
+    num_its : The number of iterations
+
+    Returns:
+    Mu      : A [K x f] array of prototypes where each row is a prototype vector
+    R       : A [N x K] array of indicators.
+    J_hats  : List, length num_its, of the value of the objective function for each iteration
+    '''
+    # Standardize the sample data, find mean and standard deviation
+    # Note: run the k_means algorithm on X_standard, not X.
     X_mean = X.mean(axis=0)
     X_std = X.std(axis=0)
     X_standard = (X-X_mean)/X_std
-    # run the k_means algorithm on X_st, not X.
 
-    # we pick K random samples from X as prototypes
+    # Step 1: Initialize K prototypes by picking K random samples from X as prototypes, Mu
     nn = sk.utils.shuffle(range(X_standard.shape[0]))
-    Mu = X_standard[nn[0: k], :]
+    Mu = X_standard[nn[0: K], :]
+    
+    # Initialize J_hat as an empty list
+    J_hats = []
+    
+    # For each iteration
+    for iter in range(num_its):
+    
+        # Step 2: E-step, calculate distance matrix, dist_matrix, as well as determining R [N x K] matrix with each r_nk indicator
+        dist_matrix = distance_matrix(X_standard, Mu)
+        R = determine_r(dist_matrix)
+        
+        # Step 3: Calculate value of J hat, objective function, for all r_nk and mu_k. Append value to the list
+        J_hats.append(determine_j(R, dist_matrix))        
 
-    ...
+        # Step 4: M-step, find new mus
+        Mu = update_Mu(Mu, X_standard, R)
+        
+        # Step 5: Compare new J_hat to previous J_hat. If the difference is above a certain threshold, we perform steps 2-4 again. Otherwise we continue up to a maximum number of iterations.
+        # Note: We have no threshold so we perform the number of iterations
+    # End for iter
 
-    # Then we have to "de-standardize" the prototypes
-    for i in range(k):
-        Mu[i, :] = Mu[i, :] * X_std + X_mean
+    # "de-standardize" the prototypes
+        for i in range(K):
+            Mu[i, :] = Mu[i, :] * X_std + X_mean
 
-    ...
+    # Return Mu, R and J_hats
+    return [Mu, R, J_hats]
 
 
 def _plot_j():
+    '''
+    
+    '''
+    
+    # Save plot as 1_6_1.png
     ...
 
 
@@ -335,9 +378,30 @@ if __name__ == "__main__":
     print("1.5 - ",end="")
 
     X, y, c = load_iris()
-    k_means(X, 4, 10)
+    K = 4
+    num_its = 10
+    Mu, R, J_hats = k_means(X, K, num_its)
+    print("Mu:")
+    print(Mu[1:10,:])
+    print(".......")
+    print("R:")
+    print(R[1:10,:])
+    print(".......")
+    print("J_hats")
+    print(J_hats[1:min(len(J_hats),10)])
+    print(".......")
     
-
+    print("Example output:")
+    print('''array([ \n
+        [6.15833333, 2.8875    , 4.82916667, 1.62916667],
+        [5.50833333, 2.47083333, 3.82916667, 1.17083333],
+        ...),
+        array([
+        [0, 0, 1, 0],
+        [0, 0, 1, 0],
+        ...),
+        [0.9844512801797404, 0.7868265220144953, ...]''')
+    
     # 1.6
     n_sections = n_sections+1
     print("1.6 - ",end="")

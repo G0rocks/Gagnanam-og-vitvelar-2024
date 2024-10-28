@@ -210,28 +210,79 @@ def k_means(X: np.ndarray, K: int, num_its: int) -> Union[list, np.ndarray, np.n
             Mu[i, :] = Mu[i, :] * X_std + X_mean
 
     # Return Mu, R and J_hats
-    return [Mu, R, J_hats]
+    return [J_hats, Mu, R]
 
 
-def _plot_j():
+def _plot_j(iters: int, js: list):
     '''
-    
+    Plots the objective function as a function of iterations.
+    Saves plot to 1_6_1.png
+
+    inputs:
+    iters   : Number of iterations
+    js      : List of js corresponding to the iterations.
     '''
+    # Plot js as a function of iters
+    plt.plot(range(iters), js)    
+    # Label axis
+    plt.xlabel("Iterations")
+    plt.ylabel("Objective function, J hat")
+    # Label title
+    plt.title("Running values of J hat ", fontsize = 20)
     
     # Save plot as 1_6_1.png
-    ...
+    plt.savefig("06a_kmeans\\1_6_1.png")
 
 
-def _plot_multi_j():
-    ...
+def _plot_multi_j(X: np.ndarray, iters: int = 10, ks: list = [2, 3, 5, 10]):
+    '''
+    Plots _plot_j()  times for each 
+    Saves the plot to 1_7_1.png
+    
+    inputs:
+    iters   : Number of iterations
+    ks      : List of ks where each k is run in the k_means algorithm
+    '''
+    # Make list of j_hat lists
+    j_hats = []
+    
+    # get number of ks
+    n_ks = len(ks)
+    
+    # Find number of rows and number of columns
+    nrows = int(np.sqrt(n_ks))
+    ncols = nrows
+    if nrows*ncols < n_ks:
+        nrows += 1
+            
+    # Create subplots with shared x axis but not y axis
+    fig, subplots = plt.subplots(nrows, ncols, sharex=True, sharey=False)
+    # Title plot
+    fig.suptitle("J hat as a function of iterations for different values of k")
+    
+    # Collect j_hats
+    for k in range(n_ks):
+        # Run k_means to collect j_hats
+        j_hats.append(k_means(X,ks[k], iters)[0])
+        
+    for row in range(nrows):
+        for col in range(ncols):
+            k = row*ncols+col
+            # Plot on subplot
+            subplots[row][col].plot(range(iters),j_hats[k], label=("k = " + str(k)))
+            # Label axis
+            if row == (nrows-1):
+                subplots[row][col].set_xlabel("Iterations")
+            if col == 0:
+                subplots[row][col].set_ylabel("J hat")
+            # Title plot
+            subplots[row][col].set_title("k = " + str(k))
+    
+    # Save plot as 1_7_1.png
+    plt.savefig("06a_kmeans\\1_7_1.png")
 
 
-def k_means_predict(
-    X: np.ndarray,
-    t: np.ndarray,
-    classes: list,
-    num_its: int
-) -> np.ndarray:
+def k_means_predict(X: np.ndarray, t: np.ndarray, classes: list, num_its: int) -> np.ndarray:
     '''
     Determine the accuracy and confusion matrix
     of predictions made by k_means on a dataset
@@ -380,7 +431,11 @@ if __name__ == "__main__":
     X, y, c = load_iris()
     K = 4
     num_its = 10
-    Mu, R, J_hats = k_means(X, K, num_its)
+    J_hats, Mu, R = k_means(X, K, num_its)
+
+    print("Complete")
+    n_sections_correct = n_sections_correct + 0.5
+
     print("Mu:")
     print(Mu[1:10,:])
     print(".......")
@@ -405,10 +460,17 @@ if __name__ == "__main__":
     # 1.6
     n_sections = n_sections+1
     print("1.6 - ",end="")
+    _plot_j(num_its, J_hats)
+    print("Complete")
+    n_sections_correct = n_sections_correct + 0.5
 
     # 1.7
     n_sections = n_sections+1
     print("1.7 - ",end="")
+    ks = [2, 3, 5, 10]
+    _plot_multi_j(X, num_its, ks)
+    print("Complete")
+
 
     # 1.8
     n_sections = n_sections+1

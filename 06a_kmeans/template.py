@@ -232,7 +232,6 @@ def _plot_j(iters: int, js: list):
     # Save plot as 1_6_1.png
     plt.savefig("06a_kmeans\\1_6_1.png")
 
-
 def _plot_multi_j(X: np.ndarray, iters: int = 10, ks: list = [2, 3, 5, 10]):
     '''
     Plots _plot_j()  times for each 
@@ -279,7 +278,6 @@ def _plot_multi_j(X: np.ndarray, iters: int = 10, ks: list = [2, 3, 5, 10]):
     
     # Save plot as 1_7_1.png
     plt.savefig("06a_kmeans\\1_7_1.png")
-
 
 def k_means_predict(X: np.ndarray, t: np.ndarray, classes: list, num_its: int) -> np.ndarray:
     '''
@@ -382,24 +380,37 @@ def _iris_kmeans_confusion_matrix(targets: np.ndarray, predictions: np.ndarray) 
     # Return confusion_matrix
     return confusion_matrix
 
+def _my_kmeans_on_image(K, iters, ):
+    '''
+    I don't know what this function is for
+    - Huldar, 2024-10-28
+    '''
+    # k_means()
+    
+    pass
 
-
-def _my_kmeans_on_image():
-    ...
-
-
-def plot_image_clusters(n_clusters: int):
+def plot_image_clusters(n_clusters: list, image: np.ndarray, w: int, h: int):
     '''
     Plot the clusters found using sklearn k-means.
+    
+    inputs:
+    n_clusters  : List with how many clusters to try
+    image       : [N x 3] array with the RGB values of the image
+    w           : Width of the image
+    h           : Height of the image
     '''
-    image, (w, h) = image_to_numpy()
-    ...
-    plt.subplot('121')
-    plt.imshow(image.reshape(w, h, 3))
-    plt.subplot('122')
-    # uncomment the following line to run
-    # plt.imshow(kmeans.labels_.reshape(w, h), cmap="plasma")
-    plt.show()
+    for k in range(len(n_clusters)):
+        # image, (w, h) = image_to_numpy() # This was here when I got here, I don't agree with loading this data inside the function, better to pass it in - Huldar 2024-10-28
+        kmeans = KMeans(n_clusters[k]).fit(image)
+
+        plt.figure()
+        plt.subplot(121)
+        plt.imshow(image.reshape(w, h, 3))
+        plt.subplot(122)
+        plt.imshow(kmeans.labels_.reshape(w, h), cmap="plasma")
+        # plt.show()
+        # Save plot as 2_1_i.png where i is the number of this image
+        plt.savefig("06a_kmeans\\2_1_" + str(k+1) + ".png")
 
 
 def _gmm_info():
@@ -540,7 +551,7 @@ if __name__ == "__main__":
     n_sections = n_sections+1
     print("1.6 - ",end="")
     _plot_j(num_its, J_hats)
-    print("Complete")
+    print("Plot saved")
     n_sections_correct = n_sections_correct + 0.5
 
     # 1.7
@@ -548,7 +559,7 @@ if __name__ == "__main__":
     print("1.7 - ",end="")
     ks = [2, 3, 5, 10]
     _plot_multi_j(X, num_its, ks)
-    print("Complete")
+    print("Plot saved")
     n_sections_correct = n_sections_correct + 0.5
 
     # 1.8
@@ -604,12 +615,22 @@ if __name__ == "__main__":
     print("File updated")
     n_sections_correct = n_sections_correct + 0.5
 
-
     ## Section 2 - Clustering an image
     # 2.1
     n_sections = n_sections+1
     print("2.1")
-   
+    K = 7
+    iters = 5
+    
+    # Get image data as X
+    X_flattened, (w, h) = image_to_numpy("06a_kmeans/images/buoys.png")
+        
+    # J_hats, Mu, R = k_means(X_flattened, K, iters) # Took 3 minutes to run. Huldar 2024-10-28 18:43
+    # _plot_j(iters, J_hats)
+    num_clusters = [2, 5, 10, 20]
+    plot_image_clusters(num_clusters, X_flattened, w, h)
+    print("Plots saved")
+    n_sections_correct = n_sections_correct + 0.5
     
     print("\n---------------------------------------------------------------\nRun succesful :)\n")
     print(("Estimated " + str(n_sections_correct) + " points out of " + str(n_sections)))

@@ -283,7 +283,7 @@ def _plot_multi_j(X: np.ndarray, iters: int = 10, ks: list = [2, 3, 5, 10]):
 
 def k_means_predict(X: np.ndarray, t: np.ndarray, classes: list, num_its: int) -> np.ndarray:
     '''
-
+    Performs classification predictions for each datapoint in X using the k_means() algorithm.
 
     Inputs:
     X : A [N x f] array of input features
@@ -303,7 +303,7 @@ def k_means_predict(X: np.ndarray, t: np.ndarray, classes: list, num_its: int) -
     J_hats, Mu, R = k_means(X, K, num_its)
     
     # Initialize predictions
-    predictions = np.zeros(N)
+    predictions = np.zeros(N, dtype=int)
     
     # Loop through each datapoint
     for n in range(N):
@@ -316,27 +316,73 @@ def k_means_predict(X: np.ndarray, t: np.ndarray, classes: list, num_its: int) -
             if R[n][k] == 1:
                 class_ID = k
         # End for k
-        # save the class ID to our predictions
+        # save the class ID to our predictions as integers
         predictions[n] = class_ID
     # End for n
     
     # return predictions
     return predictions
 
-
-def _iris_kmeans_accuracy():
+def _iris_kmeans_accuracy(targets: np.ndarray, predictions: np.ndarray) -> float :
     '''
     Determine the accuracy of predictions made by k_means on a dataset [X, t] where we assume
     the most common cluster for a class label corresponds to that label.
-    '''
-    ...
+    Accuracy = (Number of correct predictions) / number of data points
     
-def _iris_kmeans_confusion_matrix():
+    inputs:
+    targets     : The actual target classes
+    predictions : The predicted classes
+    
+    output:
+    accuracy    : The accuracy of the predictions
+    '''
+    # Find number of data points, N
+    N = targets.shape[0]
+
+    # Initialize number of correct predictions, N_true
+    N_true = 0
+    
+    # Loop through each target, count number correct predictions, N_true
+    for n in range(N):
+        if predictions[n] == targets[n]:
+            N_true += 1
+            
+    accuracy = N_true/N
+    
+    # Return accuracy
+    return accuracy
+    
+def _iris_kmeans_confusion_matrix(targets: np.ndarray, predictions: np.ndarray) -> np.ndarray:
     '''
     Determine the confusion matrix of predictions made by k_means on a dataset [X, t] where we
     assume the most common cluster for a class label corresponds to that label.
+    
+    inputs:
+    targets     : The actual target classes
+    predictions : The predicted classes
+    
+    output:
+    confusion_matrix : [K x K] A matrix which tells us how many of each prediction is correct and how many of the incorrect ones belong to which class
+                        The rows correspond to the target class and the columns to the predicted class.
     '''
-    pass
+    # Find out how many classes there are by getting the maximum value from either targets or predictions
+    K = max(np.max(targets),np.max(predictions)) + 1
+    
+    # Initialize zero confusion matrix
+    confusion_matrix = np.zeros([K, K])
+    
+    # Find number of data points, N
+    N = len(targets)
+    
+    # Go through each prediction and target
+    for n in range(N):
+        # Increment the corresponding cell in the confusion matrix
+        confusion_matrix[int(targets[n]),predictions[n]] += 1
+
+    # Return confusion_matrix
+    return confusion_matrix
+
+
 
 def _my_kmeans_on_image():
     ...
@@ -527,9 +573,9 @@ if __name__ == "__main__":
     # 1.9
     n_sections = n_sections+1
     print("1.9 - ",end="")
-    X, y, c = load_iris()
+    X, t, c = load_iris()
     num_its = 5
-    predictions = k_means_predict(X, y, c, num_its)
+    predictions = k_means_predict(X, t, c, num_its)
     print("Complete")
     n_sections_correct = n_sections_correct + 0.5
 
@@ -546,19 +592,18 @@ if __name__ == "__main__":
     # 1.10
     n_sections = n_sections+1
     print("1.10 - ",end="")
-    '''Answer the following questions:
-    Using the actual class labels of the samples and the predictions made by k_means determine the accuracy and confusion matrix of the prediction.
-    You can use _iris_kmeans_accuracy for this.'''
+    '''Using the actual class labels of the samples and the predictions made by k_means determine the accuracy
+    and confusion matrix of the prediction. You can use _iris_kmeans_accuracy for this.'''
     # Make text answer
-    text_answer = "1: 10, the highest value we tried.\n\
-2: if K = N then each datapoint would be its own cluster and this whole thing would be kind of pointless.\n\
-    Each datapoint would belong to its own \"cluster\" and the r matrix would reflect that resulting in no changes per iteration.\n\
-3: It is not a good strategy to set K = N, see answer to question 1_8_2 for explanation."
+    accuracy = _iris_kmeans_accuracy(t, predictions)
+    confusion_matrix = _iris_kmeans_confusion_matrix(t, predictions)
+    text_answer = "Accuracy:\n{:.03f}".format(accuracy) + "\nConfusion matrix:\n" + str(confusion_matrix)
 
-    with open('.\\06a_kmeans\\1_8.txt', 'w') as f:
+    with open('.\\06a_kmeans\\1_10.txt', 'w') as f:
         f.write(str(text_answer))
     print("File updated")
     n_sections_correct = n_sections_correct + 0.5
+
 
     ## Section 2 - Clustering an image
     # 2.1

@@ -110,6 +110,8 @@ def determine_j(R: np.ndarray, dist: np.ndarray) -> float:
 def update_Mu(Mu: np.ndarray, X: np.ndarray, R: np.ndarray) -> np.ndarray:
     '''
     Updates the prototypes, given arrays of current prototypes, samples and indicators.
+    Equation from instructions:
+    M-step, mu_k = sum over n {r_nk * x_n} / sum over n {r_nk}
 
     Inputs:
     Mu: A [K x f] array of current prototypes.
@@ -117,10 +119,37 @@ def update_Mu(Mu: np.ndarray, X: np.ndarray, R: np.ndarray) -> np.ndarray:
     R : A [N x K] array of indicators.
 
     Returns:
-    out (np.ndarray): A [k x f] array of updated prototypes.
+    mu_new : A [K x f] array of updated prototypes.
     '''
-    ...
+    # Find N, K and f
+    N = X.shape[0]
+    K = Mu.shape[0]
+    f = Mu.shape[1]
+    
+    # Initialize updated mu array, mu_new
+    mu_new = np.zeros([K, f])
+    
+    # For each k (row in mu) in K, update mu prototype vector
+    for k in range(K):
+        # Find sum of all R's in column k, r_sum
+        r_sum = np.sum(R[:,k])
+        
+        # Re-initialize rx_sum
+        rx_sum = 0
 
+        # For each n (row in X) in N
+        for n in range(N):
+            # Find sum of r_nk * x_n, rx_sum
+            rx_sum = rx_sum + R[n,k]*X[n]        
+        # End for n
+
+        # Set row k in mu_new as rx_sum/r_sum
+        mu_new[k] = rx_sum/r_sum
+
+    # End for k
+
+    # Return mu_new
+    return mu_new
 
 def k_means(
     X: np.ndarray,
@@ -293,7 +322,9 @@ if __name__ == "__main__":
     [0, 1],
     [1, 0]])
     
-    if str(update_Mu(Mu, X, R)) == str(np.array([[0.0,0.5,0.0],[1.0,0.0,0.0]])) :
+    mu_new = update_Mu(Mu, X, R)
+    
+    if str(mu_new) == str(np.array([[0.0,0.5,0.0],[1.0,0.0,0.0]])) :
         print("Pass")
         n_sections_correct = n_sections_correct + 1
     else:
